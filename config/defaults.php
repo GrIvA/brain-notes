@@ -75,4 +75,11 @@ $settings['fenom'] = [
      ]
 ];
 
+$settings['jwt'] = [
+    'secret' => 'change-me-in-production-very-secret-key-1234567890',
+    'issuer' => 'brain-notes',
+    'audience' => 'brain-notes-api',
+    'lifetime' => 3600, // 1 hour
+];
+
 return $settings;

@@ -17,6 +17,9 @@ use App\Middleware\LanguageMiddleware;
 use App\Middleware\PageAliasMiddleware;
 use App\Models\LanguageModel;
 use App\Models\PageAliasModel;
+use App\Models\RegistryModel;
+use App\Models\UserModel;
+use App\Middleware\AuthMiddleware;
 use App\Services\LanguageService;
 use App\Helpers\SQLiteLogger;
 
@@ -51,6 +54,23 @@ return [
 
     PageAliasModel::class => function (ContainerInterface $container) {
         return new PageAliasModel($container->get('dbase'));
+    },
+
+    RegistryModel::class => function (ContainerInterface $container) {
+        return new RegistryModel($container->get('dbase'));
+    },
+
+    UserModel::class => function (ContainerInterface $container) {
+        return new UserModel($container->get('dbase'));
+    },
+
+    AuthMiddleware::class => function (ContainerInterface $container) {
+        $settings = $container->get('settings')['jwt'];
+        return new AuthMiddleware(
+            $container->get(UserModel::class),
+            $container->get(RegistryModel::class),
+            $settings['secret']
+        );
     },
 
     LanguageService::class => function (ContainerInterface $container) {

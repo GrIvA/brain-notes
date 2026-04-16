@@ -22,4 +22,9 @@ return function (App $app) {
     })->setName('hello');
 
     $app->get('/home', 'Homepage:handle')->setName('home');
+
+    // API Routes
+    $app->group('/api/v1', function ($group) {
+        $group->get('/test-registry', \App\Controllers\Api\TestRegistryController::class);
+    });
 };
