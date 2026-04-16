@@ -1,0 +1,6 @@
+.gemini/
+AGENTS.md
+composer.lock
+config/env/env.php
+openspec/
+vendor/

@@ -1,2 +1,30 @@
-# brain-notes
-This is a small project designed to serve as an archive of notes. It supports multiple notebooks, private and public notes, and tags for quick searching. It uses the .md file format.
+# Brain Notes
+
+Це персональний нотатник з упором на швидкість, приватність та деревоподібну структуру.
+
+## Технологічний стек
+- **Backend:** PHP 8.2+ (Slim PHP Framework).
+- **Authentication:** JWT (via `lcobucci/jwt`).
+- **Templates:** Fenom (Template Engine).
+- **Database:** SQLite (via `catfan/medoo`).
+- **Frontend:** HTMX (для динаміки) + Alpine.js (для клієнтського стану).
+- **Markdown:** `erusev/parsedown`.
+
+## Архітектура додатку
+- **Middleware**: Логіка обробки запитів (мова, аліаси, безпека).
+- **Services**: Бізнес-логіка (переклади, робота з XML).
+- **Models**: Шар доступу до даних (Data Access Layer). Усі запити до Medoo інкапсульовані в класах моделей у `src/Models/`.
+- **Controllers**: Тонкі контролери, що координують роботу моделей та сервісів для рендерингу сторінок.
+
+## Архітектура шаблонів
+Ми використовуємо структуровану систему шаблонів у `templates/`:
+- `layouts/`: Базові макети сторінок (наприклад, `main.tpl`).
+- `pages/`: Специфічні шаблони для кожного маршруту.
+- `components/`: Багаторазові HTML-фрагменти, готові для використання з HTMX.
+
+## Структура зберігання даних
+- `storage/db/`: Містить файл бази даних SQLite (`database.db`). Директорія захищена від прямого доступу та ігнорується системою контролю версій Git.
+- `logs/`: Директорія для логів додатку.
+
+## Локальні бібліотеки
+Усі фронтенд-бібліотеки (`htmx.min.js`, `alpine.min.js`) розміщені локально в `public/js/` для забезпечення приватності та швидкості.

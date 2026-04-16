@@ -1,0 +1,72 @@
+{
+  "authors": [{
+      "name": "GrIvA",
+      "email": "site_core@griva.in.ua",
+      "homepage": "http://griva.org.ua"
+  }],
+  "description": "Slim 4 brain notes helper progect",
+  "type": "project",
+  "license": "MIT",
+  "repositories": [
+      {
+          "type": "package",
+          "package": {
+              "name": "griva/php-ref",
+              "version": "1.0.2",
+              "source": {
+                  "url": "https://github.com/GrIvA/php-ref.git",
+                  "type": "git",
+                  "reference": "master"
+              },
+              "autoload": {
+                  "files": [ "ref.php" ]
+              }
+          }
+      },
+      {
+          "type": "package",
+          "package": {
+              "name": "griva/fenom",
+              "version": "2.12.2",
+              "source": {
+                  "url": "https://github.com/GrIvA/fenom.git",
+                  "type": "git",
+                  "reference": "master"
+              },
+              "autoload": {
+                  "psr-0": { "Fenom\\": "src/" },
+                  "classmap": [ "src/Fenom.php" ]
+              }
+          }
+      }
+  ],
+  "require": {
+    "slim/slim": "^4.15",
+    "analog/analog": "dev-master",
+    "php-di/php-di": "^7.0",
+    "catfan/medoo": "dev-master",
+    "nyholm/psr7": "^1.5",
+    "nyholm/psr7-server": "^1.1",
+    "samuelgfeller/slim-error-renderer": "^1",
+    "svyatov/curlwrapper": "~1.3",
+    "fenom/fenom": "^3",
+    "erusev/parsedown": "^1.7",
+    "lcobucci/jwt": "6.0.x-dev"
+  },
+  "require-dev": {
+    "griva/php-ref": "^1.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    },
+    "files": [
+      "config/functions.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "App\\Test\\": "tests/"
+    }
+  }
+}
