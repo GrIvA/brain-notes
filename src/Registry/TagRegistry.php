@@ -124,6 +124,24 @@ class TagRegistry
     }
 
     /**
+     * Soft delete a tag by key and value.
+     *
+     * @param string $key
+     * @param mixed $value
+     */
+    public function removeByKeyValue(string $key, mixed $value): void
+    {
+        $this->load();
+        $encodedValue = $this->encodeValue($value);
+        foreach ($this->tags as $tag) {
+            if ($tag['tag_key'] === $key && $tag['tag_value'] === $encodedValue) {
+                $this->model->deleteTag((int)$tag['id']);
+            }
+        }
+        $this->tags = null;
+    }
+
+    /**
      * Returns tags as a hierarchical tree.
      *
      * @return array

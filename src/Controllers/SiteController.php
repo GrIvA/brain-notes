@@ -102,11 +102,10 @@ abstract class SiteController extends AbstractController
             'page_id' => $this->getPageID(),
             'title_of_page' => '',
         ];
-        /*
-        $this->params['user_info'] = ($this->user instanceof User)
-            ? $this->user->getInfo()
-            : ['alias' => ''];
 
+        $this->params['user'] = $this->user ? $this->user->toArray() : null;
+
+        /*
         $tags = new Tags($this->container);
         $this->params['tags'] = $tags->getAllTags();
 

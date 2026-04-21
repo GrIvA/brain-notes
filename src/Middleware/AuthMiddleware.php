@@ -48,12 +48,25 @@ class AuthMiddleware implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        $tokenStr = null;
         $authHeader = $request->getHeaderLine('Authorization');
-        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
-            throw new HttpUnauthorizedException($request, "Missing or invalid Authorization header");
+        
+        if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
+            $tokenStr = substr($authHeader, 7);
+        } else {
+            $cookies = $request->getCookieParams();
+            if (isset($cookies['auth_token'])) {
+                $tokenStr = $cookies['auth_token'];
+            }
         }
 
-        $tokenStr = substr($authHeader, 7);
+        if (!$tokenStr) {
+            if (!empty($this->allowedRoles)) {
+                throw new HttpUnauthorizedException($request, "Missing Authorization");
+            }
+            return $handler->handle($request->withAttribute('user', null));
+        }
+
         $parser = new Parser(new JoseEncoder());
 
         try {
@@ -66,8 +79,9 @@ class AuthMiddleware implements MiddlewareInterface
                 throw new HttpUnauthorizedException($request, "Invalid token signature");
             }
 
-            // Check if token is expired
-            if ($token->isExpired(new \DateTimeImmutable())) {
+            // Manual expiration check to avoid dependency on lcobucci/clock
+            $now = new \DateTimeImmutable();
+            if ($token->isExpired($now)) {
                 throw new HttpUnauthorizedException($request, "Token expired");
             }
 
@@ -75,10 +89,25 @@ class AuthMiddleware implements MiddlewareInterface
             $userData = $this->userModel->findById($userId);
 
             if (!$userData) {
-                throw new HttpUnauthorizedException($request, "User not found");
+                if (!empty($this->allowedRoles)) {
+                    throw new HttpUnauthorizedException($request, "User not found");
+                }
+                return $handler->handle($request->withAttribute('user', null));
             }
 
             $user = new User($userData, $this->registryModel);
+
+            // Check JTI in TagRegistry
+            $jti = $token->claims()->get('jti');
+            if ($jti) {
+                $activeSessions = $user->tags('auth')->getAll('active_session');
+                if (!in_array($jti, $activeSessions)) {
+                    if (!empty($this->allowedRoles)) {
+                        throw new HttpUnauthorizedException($request, "Session invalidated");
+                    }
+                    return $handler->handle($request->withAttribute('user', null));
+                }
+            }
 
             // Role check (RBAC)
             if (!empty($this->allowedRoles)) {
@@ -96,12 +125,16 @@ class AuthMiddleware implements MiddlewareInterface
 
             // Add user to request attributes
             $request = $request->withAttribute('user', $user);
+            $request = $request->withAttribute('jti', $jti);
 
         } catch (\Exception $e) {
-            if ($e instanceof HttpUnauthorizedException || $e instanceof HttpForbiddenException) {
-                throw $e;
+            if (!empty($this->allowedRoles)) {
+                if ($e instanceof HttpUnauthorizedException || $e instanceof HttpForbiddenException) {
+                    throw $e;
+                }
+                throw new HttpUnauthorizedException($request, "Token error: " . $e->getMessage());
             }
-            throw new HttpUnauthorizedException($request, "Token error: " . $e->getMessage());
+            return $handler->handle($request->withAttribute('user', null));
         }
 
         return $handler->handle($request);

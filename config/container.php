@@ -138,98 +138,93 @@ return [
     'tmpl' => function ( ContainerInterface $container ) {
         $fenomSettings = $container->get('settings')['fenom'];
 
-    $fenom = Fenom::factory(
-        ROOTDIR . $fenomSettings['template_dir'],
-        ROOTDIR . $fenomSettings['cache_dir'],
-        $fenomSettings['options']
-    );
-
-    // add some custom modificators for better usage
-    /*
-     * translate - use {'VNZ000021'|translate} - translate variable
-     * getPageURL - use {11|getPageURL} - generate URL for page with id = 11
-     * link - use {'bla-bla <a>hello</a> bla-bla'|link:href:title:blank_flag} - generate link inside language variable
-     * money_format - use {$var|money_format:is_float:result_separator} - generate correct money format view
-     * phone - use {$var|mobile} generate human phone view
-     * giftcard - use {$var|giftcard} generate human gift card vie
-     *
-     * doNotShow - {doNotShow} bla-bla {/doNotShow} - Just ignore all what putting inside block
-     */
-    $fenom->addModifier('giftcard', function ($num) {
-        $groups = sscanf($num, '%2s%2s%2s%2s%2s%2s%2s%2s%2s%2s');
-        $groups = array_filter($groups, function ($it) {
-            return !is_null($it);
-        });
-        return implode('-', $groups);
-    });
-    $fenom->addModifier('phone', function ($phone) {
-        global $app;
-        $country_code = str_replace('+', '', $app->getContainer()['settings']['additional_params']['country_code']);
-
-        $phone = substr($phone, strlen($country_code));
-        $groups = sscanf($phone, '%3s%2s%2s%2s%2s%2s%2s%2s%2s%2s%2s');
-        $groups = array_filter($groups, function ($it) {
-            return !is_null($it);
-        });
-        return sprintf('<span class="phone_format">+%s %s</span>', $country_code, implode('-', $groups));
-    });
-    $fenom->addModifier('money_format', function ($value, $is_float = true, $result_separator = "'") {
-        return number_format($value, (($is_float) ? 2 : 0), '.', $result_separator);
-    });
-    $fenom->addModifier('link', function ($str, $href, $title = '', $blank = true) {
-        $pos = strpos($str, '<a>');
-        if ($pos === false) {
-            return $str;
-        }
-        return substr_replace(
-            $str,
-            sprintf('<a title="%s" href="%s" %s>', $title, $href, ($blank ? 'target="_blank"' : '')),
-            $pos,
-            3
+        $fenom = Fenom::factory(
+            ROOTDIR . $fenomSettings['template_dir'],
+            ROOTDIR . $fenomSettings['cache_dir'],
+            $fenomSettings['options']
         );
-    });
-    $fenom->addModifier('translate', function ($var) use ($container) {
-        $lang = $container->get(LanguageService::class);
-        return $lang->translate($var);
-    });
-    /*
-    $fenom->addModifier('getPageURL', function ($id) use ($c) {
-        $dbase = $c['dbase'];
-        $lang = $c['lang'];
 
-        $alias = $dbase->get(
-            'page_aliases',
-            'alias',
-            ['page_id' => $id, 'language_id' => $lang->getCurrentLanguageID()]
-        );
-        if (is_null($alias)) {
-            $log = $c['log'];
-            $log->warning('No page alias for page id: '.$id);
-        }
+        // add some custom modificators for better usage
+        /*
+         * translate - use {'VNZ000021'|translate} - translate variable
+         * getPageURL - use {11|getPageURL} - generate URL for page with id = 11
+         * link - use {'bla-bla <a>hello</a> bla-bla'|link:href:title:blank_flag} - generate link inside language variable
+         * money_format - use {$var|money_format:is_float:result_separator} - generate correct money format view
+         * phone - use {$var|mobile} generate human phone view
+         * giftcard - use {$var|giftcard} generate human gift card vie
+         *
+         * doNotShow - {doNotShow} bla-bla {/doNotShow} - Just ignore all what putting inside block
+         */
+        $fenom->addModifier('giftcard', function ($num) {
+            $groups = sscanf($num, '%2s%2s%2s%2s%2s%2s%2s%2s%2s%2s');
+            $groups = array_filter($groups, function ($it) {
+                return !is_null($it);
+            });
+            return implode('-', $groups);
+        });
+        $fenom->addModifier('phone', function ($phone) {
+            global $app;
+            $country_code = str_replace('+', '', $app->getContainer()['settings']['additional_params']['country_code']);
 
-        return $lang->getAbrByID($lang->getCurrentLanguageID()) . '/' . $alias;
-    });
-    $fenom->addModifier('logo', function ($url) use ($c) {
-        // {$common.additional_params.image_server}
-        $result = file_exists(WEBDIR . 'images/' . $url)
-            ? '/images/' . $url
-            : $c['settings']['additional_params']['image_server'] . $url;
-        return $result;
-    });
-    $fenom->addModifier('markdown', function ($text) use ($c) {
-        if (empty($text)) {
+            $phone = substr($phone, strlen($country_code));
+            $groups = sscanf($phone, '%3s%2s%2s%2s%2s%2s%2s%2s%2s%2s%2s');
+            $groups = array_filter($groups, function ($it) {
+                return !is_null($it);
+            });
+            return sprintf('<span class="phone_format">+%s %s</span>', $country_code, implode('-', $groups));
+        });
+        $fenom->addModifier('money_format', function ($value, $is_float = true, $result_separator = "'") {
+            return number_format($value, (($is_float) ? 2 : 0), '.', $result_separator);
+        });
+        $fenom->addModifier('link', function ($str, $href, $title = '', $blank = true) {
+            $pos = strpos($str, '<a>');
+            if ($pos === false) {
+                return $str;
+            }
+            return substr_replace(
+                $str,
+                sprintf('<a title="%s" href="%s" %s>', $title, $href, ($blank ? 'target="_blank"' : '')),
+                $pos,
+                3
+            );
+        });
+        $fenom->addModifier('translate', function ($var) use ($container) {
+            $lang = $container->get(LanguageService::class);
+            return $lang->translate($var);
+        });
+        $fenom->addModifier('getPageURL', function ($route) use ($container) {
+            $ls = $container->get(LanguageService::class);
+            $lang_current_id = $ls->getCurrentLanguageID();
+            $alias = $container->get(PageAliasModel::class)->findByRouteName($route, $lang_current_id);
+            if (is_null($alias)) {
+                //$log = $c['log'];
+                $container->get(LoggerInterface::class)->warning('No page alias for route: '.$route);
+            }
+
+            return $ls->getAbrByID($lang_current_id) . '/' . $alias['alias'];
+        });
+        /*
+        $fenom->addModifier('logo', function ($url) use ($c) {
+            // {$common.additional_params.image_server}
+            $result = file_exists(WEBDIR . 'images/' . $url)
+                ? '/images/' . $url
+                : $c['settings']['additional_params']['image_server'] . $url;
+            return $result;
+        });
+        $fenom->addModifier('markdown', function ($text) use ($c) {
+            if (empty($text)) {
+                return '';
+            }
+            $parser = $c['Parsedown'];
+
+            return $parser->setMarkupEscaped(false)->text($text);
+        });
+         */
+
+        $fenom->addBlockFunction('doNotShow', function (array $params, $content) {
             return '';
-        }
-        $parser = $c['Parsedown'];
+        });
 
-        return $parser->setMarkupEscaped(false)->text($text);
-    });
-     */
-
-    $fenom->addBlockFunction('doNotShow', function (array $params, $content) {
-        return '';
-    });
-
-    return $fenom;
+        return $fenom;
     },
 ];

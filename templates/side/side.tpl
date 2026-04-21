@@ -1,10 +1,17 @@
 <aside id="sidebar">
     <div class="sidebar-logo">
-        <img src="/logo2.png" alt="Logo">
+        <a href="/{'home'|getPageURL}" style="display: block; text-align: center;">
+            <img src="/logo2.png" alt="Logo">
+        </a>
         <hr>
     </div>
 
     <nav>
+        {if $user}
+            <div style="padding: 0 0.5rem 1rem;">
+                <strong>Вітаємо, {$user.name}!</strong>
+            </div>
+        {/if}
         <ul>
             <li><strong>Навігація</strong></li>
             <li><a href="#">🏠 Головна</a></li>

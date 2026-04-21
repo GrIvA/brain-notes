@@ -8,6 +8,9 @@ use SlimErrorRenderer\Middleware\NonFatalErrorHandlingMiddleware;
 // Slim middlewares are LIFO (last in, first out) so when responding, the order is backwards
 return function (Slim\App $app) {
 
+    // Global Auth Handling
+    $app->add(\App\Middleware\AuthMiddleware::class);
+
     // Page alias to route Middleware
     $app->add(PageAliasMiddleware::class);
 

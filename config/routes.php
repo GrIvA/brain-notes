@@ -23,6 +23,14 @@ return function (App $app) {
 
     $app->get('/home', 'Homepage:handle')->setName('home');
 
+    // Auth Routes
+    $app->get('/login', \App\Controllers\Pages\LoginPage::class . ':handle')->setName('login');
+    $app->get('/register', \App\Controllers\Pages\RegisterPage::class . ':handle')->setName('register');
+    
+    $app->post('/login', \App\Controllers\Api\AuthController::class . ':login');
+    $app->post('/register', \App\Controllers\Api\AuthController::class . ':register');
+    $app->post('/logout', \App\Controllers\Api\AuthController::class . ':logout')->add(\App\Middleware\AuthMiddleware::class);
+
     // API Routes
     $app->group('/api/v1', function ($group) {
         $group->get('/test-registry', \App\Controllers\Api\TestRegistryController::class);

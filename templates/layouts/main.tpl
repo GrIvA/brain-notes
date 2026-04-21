@@ -23,9 +23,25 @@
         <link rel="stylesheet" href="/css/fontawesome-all.min.css">
         <!-- Підключення Pico CSS v2 з темою Slate -->
         <link rel="stylesheet" href="/css/pico.custom.min.css">
+        <link rel="stylesheet" href="/css/custom.css">
         {block 'css'}{/block}
     </head>
-    <body>
+    <body x-data="{ 
+        toasts: [],
+        addToast(message, type = 'success') {
+            const id = Date.now();
+            this.toasts.push({ id, message, type });
+            setTimeout(() => {
+                this.toasts = this.toasts.filter(t => t.id !== id);
+            }, 3000);
+        }
+    }" @toast.window="addToast($event.detail.message, $event.detail.type)">
+        <!-- Toasts Container -->
+        <div class="toast-container">
+            <template x-for="toast in toasts" :key="toast.id">
+                <div class="toast" x-text="toast.message" :style="toast.type === 'error' ? 'border-left-color: var(--pico-form-element-invalid-border-color)' : ''"></div>
+            </template>
+        </div>
         <!-- Header -->
         <header class="container">
             {insert 'header/header.tpl'}

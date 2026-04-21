@@ -1,0 +1,96 @@
+/* Custom styles for Brain Notes */
+
+.toast-container {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+}
+
+.toast {
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--pico-border-radius);
+    background: var(--pico-card-background-color);
+    box-shadow: var(--pico-card-box-shadow);
+    border-left: 4px solid var(--pico-primary-background);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Sidebar transitions and mobile view */
+.layout-with-sidebar {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--pico-grid-column-gap);
+}
+
+#sidebar {
+    width: 260px;
+    flex-shrink: 0;
+}
+
+/* Основний контент займає решту простору */
+.layout-with-sidebar > section,
+.layout-with-sidebar > article {
+    flex-grow: 1;
+    min-width: 0; /* Запобігає виходу за межі флекс-контейнера */
+}
+
+@media (max-width: 768px) {
+    #sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        bottom: 0;
+        width: 280px;
+        background: var(--pico-background-color);
+        z-index: 1001;
+        transition: left 0.3s ease;
+        padding: 1rem;
+    }
+    #sidebar.open {
+        left: 0;
+    }
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+    .sidebar-overlay.open {
+        display: block;
+    }
+}
+/* Компактний перемикач мов */
+ul li .lang-switcher {
+    position: relative;
+    display: inline-block;
+    margin: 0;
+    vertical-align: middle;
+}
+ul li .lang-switcher summary { padding: 0 7px; }
+
+/* Випадаючий список */
+ul li .lang-switcher ul {
+    position: absolute;
+    left: 0 !important;
+    right: auto !important;
+    width: max-content !important;
+    min-width: 100% !important;
+    margin: 0.25rem 0 0 0 !important;
+    padding: 0.5rem 0 !important;
+    box-shadow: var(--pico-card-box-shadow);
+    z-index: 1000;
+}
+

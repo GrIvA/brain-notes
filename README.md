@@ -4,6 +4,7 @@
 
 ## Технологічний стек
 - **Backend:** PHP 8.2+ (Slim PHP Framework).
+- **Languages:** Багатомовність з підтримкою перекладу через XML-ресурси.
 - **Authentication:** JWT (via `lcobucci/jwt`).
 - **Templates:** Fenom (Template Engine).
 - **Database:** SQLite (via `catfan/medoo`).
@@ -31,3 +32,16 @@
 
 ## Локальні бібліотеки
 Усі фронтенд-бібліотеки (`htmx.min.js`, `alpine.min.js`) розміщені локально в `public/js/` для забезпечення приватності та швидкості.
+
+## Автентифікація
+Система підтримує реєстрацію, вхід та вихід користувачів:
+- **JWT + TagRegistry**: Використовується гібридний підхід. Кожен токен має унікальний JTI, який реєструється в системі тегів користувача. Це дозволяє миттєво анулювати сесію при виході (Logout).
+- **Cookies**: Для веб-інтерфейсу токен зберігається в `httpOnly` кукі.
+- **Middleware**: Автоматично ідентифікує користувача за заголовком Authorization або Cookie.
+
+## Корисні команди (Docker)
+- Виконання PHP: `docker exec -w /app/blog/html web8 php [args]`
+- Запуск тестів автентифікації:
+  - `docker exec -w /app/blog/html web8 php tests/API/user/test_auth_flow.php`
+  - `docker exec -w /app/blog/html web8 php tests/API/user/test_middleware_flow.php`
+

@@ -42,7 +42,7 @@ class PageAliasModel
         $result = $this->db->get(
             'page_aliases',
             ['[>]page' => ['page_id']],
-            ['route', 'page_id', 'is_login'],
+            ['route', 'route_name', 'page_id', 'is_login'],
             [
                 'route' => $route
             ]
@@ -74,13 +74,17 @@ class PageAliasModel
     /**
      * Пошук сторінки за назвою маршруту (routeName).
      */
-    public function findByRouteName(string $routeName)
+    public function findByRouteName(string $routeName, int $langId)
     {
-        // Припускаємо, що у таблиці `page` є поле `route`, яке ми трактуємо як назву
         $result = $this->db->get(
-            'page',
-            ['page_id', 'route'],
-            ['route' => $routeName]
+            'page_aliases',
+            ['[>]page' => ['page_id']],
+            ['route', 'route_name', 'page_id', 'is_login', 'alias'],
+            ['AND' => [
+                    'page_aliases.language_id' => $langId,
+                    'page.route_name' => $routeName
+                ]
+            ]
         );
         $this->dbError = $this->db->error;
         return $result;
