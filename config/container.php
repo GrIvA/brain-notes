@@ -19,7 +19,10 @@ use App\Models\LanguageModel;
 use App\Models\PageAliasModel;
 use App\Models\RegistryModel;
 use App\Models\UserModel;
+use App\Models\NotebookModel;
+use App\Models\SectionModel;
 use App\Middleware\AuthMiddleware;
+use App\Services\AuthService;
 use App\Services\LanguageService;
 use App\Helpers\SQLiteLogger;
 
@@ -64,12 +67,30 @@ return [
         return new UserModel($container->get('dbase'));
     },
 
+    NotebookModel::class => function (ContainerInterface $container) {
+        return new NotebookModel($container->get('dbase'));
+    },
+
+    SectionModel::class => function (ContainerInterface $container) {
+        return new SectionModel($container->get('dbase'));
+    },
+
     AuthMiddleware::class => function (ContainerInterface $container) {
         $settings = $container->get('settings')['jwt'];
         return new AuthMiddleware(
             $container->get(UserModel::class),
             $container->get(RegistryModel::class),
-            $settings['secret']
+            $settings['secret'],
+            [],
+            $container->get(AuthService::class)
+        );
+    },
+
+    AuthService::class => function (ContainerInterface $container) {
+        return new AuthService(
+            $container->get('settings')['jwt'],
+            $container->get(RegistryModel::class),
+            $container->get(LoggerInterface::class)
         );
     },
 

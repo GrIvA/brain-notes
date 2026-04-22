@@ -34,5 +34,18 @@ return function (App $app) {
     // API Routes
     $app->group('/api/v1', function ($group) {
         $group->get('/test-registry', \App\Controllers\Api\TestRegistryController::class);
-    });
+
+        // Notebooks
+        $group->get('/notebooks', \App\Controllers\Api\NotebookController::class . ':index');
+        $group->post('/notebooks', \App\Controllers\Api\NotebookController::class . ':store');
+        $group->delete('/notebooks/{id}', \App\Controllers\Api\NotebookController::class . ':delete');
+
+        // Sections
+        $group->get('/notebooks/{id}/tree', \App\Controllers\Api\SectionController::class . ':tree');
+        $group->post('/sections', \App\Controllers\Api\SectionController::class . ':store');
+        $group->patch('/sections/{id}/move', \App\Controllers\Api\SectionController::class . ':move');
+        $group->delete('/sections/{id}', \App\Controllers\Api\SectionController::class . ':delete');
+
+    })->add(\App\Middleware\ApiContentTypeMiddleware::class)
+      ->add(\App\Middleware\AuthMiddleware::class);
 };

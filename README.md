@@ -15,6 +15,7 @@
 - **Middleware**: Логіка обробки запитів (мова, аліаси, безпека).
 - **Services**: Бізнес-логіка (переклади, робота з XML).
 - **Models**: Шар доступу до даних (Data Access Layer). Усі запити до Medoo інкапсульовані в класах моделей у `src/Models/`.
+- **Notebooks & Sections**: Ієрархічна структура зошитів та розділів з підтримкою деревовидної вкладеності (Recursive Adjacency List).
 - **Registry**: Гнучка система метаданих та ієрархічних структур (теги, налаштування, розділи), реалізована через `TagRegistry` та `RegistryModel` (патерн EAV).
 - **Authentication**: JWT-базована аутентифікація для API з підтримкою контролю доступу на основі ролей (RBAC) через бітову маску.
 - **Entities**: Підтримка об'єктів-сутностей (наприклад, `BaseEntity`, `User`), які інтегрують дані моделей та метадані з реєстру через патерн "Lazy Collection".
@@ -41,7 +42,73 @@
 
 ## Корисні команди (Docker)
 - Виконання PHP: `docker exec -w /app/blog/html web8 php [args]`
-- Запуск тестів автентифікації:
-  - `docker exec -w /app/blog/html web8 php tests/API/user/test_auth_flow.php`
-  - `docker exec -w /app/blog/html web8 php tests/API/user/test_middleware_flow.php`
+- Запуск тестів:
+  - Автентифікація: `docker exec -w /app/blog/html web8 php tests/API/user/test_auth_flow.php`
+  - Зошити та Розділи: `docker exec -w /app/blog/html web8 php tests/API/notebook/verify_notebook_api.php`
+
+## API Usage (cURL examples)
+
+### User Authentication
+Для роботи з API необхідно отримати токен авторизації.
+
+**Реєстрація:**
+```bash
+curl -X POST http://blog.test:88/register \
+     -H "Content-Type: application/json" \
+     -d '{"email": "user@example.com", "password": "password123", "name": "User Name"}' \
+     -c cookies.txt
+```
+
+**Вхід (Login):**
+```bash
+curl -X POST http://blog.test:88/login \
+     -H "Content-Type: application/json" \
+     -d '{"email": "user@example.com", "password": "password123"}' \
+     -c cookies.txt
+```
+
+### Sliding Session (Automatic Token Refresh)
+Система автоматично оновлює токен, якщо пройшло більше 2/3 його часу життя. `curl` автоматично оновлює сесію, якщо ви використовуєте `-c cookies.txt`.
+
+**Перевірка оновлення (дивіться заголовок Set-Cookie у відповіді):**
+```bash
+curl -X GET http://blog.test:88/api/v1/notebooks \
+     -b cookies.txt \
+     -c cookies.txt \
+     -v
+```
+
+**Створення зошита:**
+```bash
+curl -X POST http://blog.test:88/api/v1/notebooks \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"title": "Мій робочий зошит", "attributes": 1}'
+```
+
+**Отримання списку зошитів:**
+```bash
+curl -X GET http://blog.test:88/api/v1/notebooks -b cookies.txt
+```
+
+**Додавання розділу (кореневого):**
+```bash
+curl -X POST http://blog.test:88/api/v1/sections \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"notebook_id": 1, "title": "Назва розділу", "parent_id": null}'
+```
+
+**Отримання дерева розділів зошита:**
+```bash
+curl -X GET http://blog.test:88/api/v1/notebooks/1/tree -b cookies.txt
+```
+
+**Переміщення розділу (зміна parent_id):**
+```bash
+curl -X PATCH http://blog.test:88/api/v1/sections/2/move \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"parent_id": 3}'
+```
 

@@ -175,7 +175,7 @@ class TagRegistry
     private function encodeValue(mixed $value): string
     {
         if (is_array($value) || is_object($value)) {
-            return (string)json_encode($value);
+            return (string)json_encode($value, JSON_UNESCAPED_UNICODE);
         }
         return (string)$value;
     }

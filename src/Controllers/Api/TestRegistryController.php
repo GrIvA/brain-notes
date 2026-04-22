@@ -38,7 +38,7 @@ class TestRegistryController extends AbstractController
             ]
         ];
 
-        $response->getBody()->write((string)json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $response->getBody()->write((string)json_encode($data, JSON_UNESCAPED_UNICODE));
         return $response->withHeader('Content-Type', 'application/json');
     }
 }

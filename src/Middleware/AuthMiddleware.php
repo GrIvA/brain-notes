@@ -8,6 +8,7 @@ use App\Entities\User;
 use App\Enums\UserRole;
 use App\Models\RegistryModel;
 use App\Models\UserModel;
+use App\Services\AuthService;
 use Lcobucci\JWT\Encoding\JoseEncoder;
 use Lcobucci\JWT\Token\Parser;
 use Lcobucci\JWT\Validation\Validator;
@@ -27,23 +28,27 @@ class AuthMiddleware implements MiddlewareInterface
     private RegistryModel $registryModel;
     private string $secret;
     private array $allowedRoles;
+    private ?AuthService $authService;
 
     /**
      * @param UserModel $userModel
      * @param RegistryModel $registryModel
      * @param string $secret
      * @param UserRole[] $allowedRoles empty means any authenticated user
+     * @param AuthService|null $authService required for sliding session
      */
     public function __construct(
         UserModel $userModel,
         RegistryModel $registryModel,
         string $secret,
-        array $allowedRoles = []
+        array $allowedRoles = [],
+        ?AuthService $authService = null
     ) {
         $this->userModel = $userModel;
         $this->registryModel = $registryModel;
         $this->secret = $secret;
         $this->allowedRoles = $allowedRoles;
+        $this->authService = $authService;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -79,7 +84,7 @@ class AuthMiddleware implements MiddlewareInterface
                 throw new HttpUnauthorizedException($request, "Invalid token signature");
             }
 
-            // Manual expiration check to avoid dependency on lcobucci/clock
+            // Manual expiration check
             $now = new \DateTimeImmutable();
             if ($token->isExpired($now)) {
                 throw new HttpUnauthorizedException($request, "Token expired");
@@ -109,7 +114,7 @@ class AuthMiddleware implements MiddlewareInterface
                 }
             }
 
-            // Role check (RBAC)
+            // Role check
             if (!empty($this->allowedRoles)) {
                 $hasAccess = false;
                 foreach ($this->allowedRoles as $role) {
@@ -127,6 +132,27 @@ class AuthMiddleware implements MiddlewareInterface
             $request = $request->withAttribute('user', $user);
             $request = $request->withAttribute('jti', $jti);
 
+            // --- Sliding Session Logic ---
+            $response = $handler->handle($request);
+
+            if ($this->authService && $jti) {
+                $iat = $token->claims()->get('iat');
+                $exp = $token->claims()->get('exp');
+                
+                if ($iat instanceof \DateTimeImmutable && $exp instanceof \DateTimeImmutable) {
+                    $lifetime = $exp->getTimestamp() - $iat->getTimestamp();
+                    $elapsed = $now->getTimestamp() - $iat->getTimestamp();
+                    
+                    // If more than 2/3 of lifetime has passed, refresh the token
+                    if ($elapsed > (2 * $lifetime / 3)) {
+                        $newToken = $this->authService->refreshSession($user, (string)$jti);
+                        $response = $response->withHeader('Set-Cookie', $this->authService->getCookieHeader($newToken));
+                    }
+                }
+            }
+
+            return $response;
+
         } catch (\Exception $e) {
             if (!empty($this->allowedRoles)) {
                 if ($e instanceof HttpUnauthorizedException || $e instanceof HttpForbiddenException) {
@@ -136,7 +162,5 @@ class AuthMiddleware implements MiddlewareInterface
             }
             return $handler->handle($request->withAttribute('user', null));
         }
-
-        return $handler->handle($request);
     }
 }
