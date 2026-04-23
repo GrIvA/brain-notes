@@ -1,67 +1,79 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Responder;
 
 use Psr\Http\Message\ResponseInterface;
 use Slim\Interfaces\RouteParserInterface;
-use Slim\Routing\RouteContext;
 
-final readonly class RedirectHandler
+/**
+ * Helper class to generate HTTP redirects.
+ *
+ * This class is designed to be used via dependency injection.
+ * Register it in the container and inject the {@see RouteParserInterface}
+ * when constructing the service.
+ */
+final class RedirectHandler
 {
-    public function __construct ()
+    private RouteParserInterface $routeParser;
+
+    public function __construct(RouteParserInterface $routeParser)
     {
+        $this->routeParser = $routeParser;
     }
 
     /**
-     * Creates a redirect for the given url.
+     * Creates a redirect for the given URL or page ID.
      *
-     * This method prepares the response object to return an HTTP Redirect
-     * response to the client.
+     * If an integer is supplied, it is assumed to be a page ID and will be
+     * resolved to an alias using the global helper `getAliasByPageID()`.
      *
-     * @param ResponseInterface $response The response
-     * @param string $destination The redirect destination (url or route name)
-     * @param array<string, int|string> $queryParams Optional query string parameters
+     * @param ResponseInterface $response   The response to modify.
+     * @param string|int        $destination URL, path or page ID.
+     * @param array<string,int|string> $queryParams Optional query string parameters.
      *
-     * @return ResponseInterface The response
+     * @return ResponseInterface The response with a 302 status and Location header.
      */
-    public static function redirectToUrl(
+    public function redirectToUrl(
         ResponseInterface $response,
-        string $destination,
-        array $queryParams = [],
+        string|int $destination,
+        array $queryParams = []
     ): ResponseInterface {
-        global $app;
-        if (is_numeric($destination)) {
+        // Resolve page ID to URL alias if needed.
+        if (is_int($destination)) {
+            // The helper function is part of the legacy codebase.
+            // It returns a string URL for the given page ID.
             $destination = getAliasByPageID($destination);
         }
 
-        if ($queryParams) {
+        // Append query string if parameters are provided.
+        if ($queryParams !== []) {
             $destination = sprintf('%s?%s', $destination, http_build_query($queryParams));
         }
 
-        return $response->withStatus(302)->withHeader('Location', $destination);
+        return $response
+            ->withStatus(302)
+            ->withHeader('Location', $destination);
     }
 
     /**
-     * Creates a redirect for the given route name.
+     * Creates a redirect for the given named route.
      *
-     * This method prepares the response object to return an HTTP Redirect
-     * response to the client.
+     * @param ResponseInterface $response   The response to modify.
+     * @param string            $routeName  The name of the route defined in Slim.
+     * @param array<string,mixed> $data      Named arguments for the route placeholders.
+     * @param array<string,string> $queryParams Optional query string parameters.
      *
-     * @param ResponseInterface $response The response
-     * @param string $routeName The redirect route name
-     * @param array<string, string> $data Named argument replacement data
-     * @param array<string, string> $queryParams Optional query string parameters
-     *
-     * @return ResponseInterface The response
+     * @return ResponseInterface The response with a 302 status and Location header.
      */
-    public static function redirectToRouteName(
+    public function redirectToRouteName(
         ResponseInterface $response,
         string $routeName,
         array $data = [],
-        array $queryParams = [],
+        array $queryParams = []
     ): ResponseInterface {
-        //$router_contex = RouteContext::fromRequest($req);
-        //$route = $router_contex->getRoute();
-        return $this->redirectToUrl($response, $this->routeParser->urlFor($routeName, $data, $queryParams));
+        $url = $this->routeParser->urlFor($routeName, $data, $queryParams);
+        return $this->redirectToUrl($response, $url);
     }
 }
