@@ -4,3 +4,7 @@ composer.lock
 config/env/env.php
 openspec/
 vendor/
+.aider*
+tmp/
+start_aider.sh
+voice_patch.sh
