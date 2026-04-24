@@ -13,6 +13,10 @@
 // Set default locale
 setlocale(LC_ALL, 'en_US.utf8', 'en_US');
 
+// Disable deprecated warnings from core libraries (like Fenom)
+error_reporting(E_ALL & ~E_DEPRECATED);
+ini_set('display_errors', '0');
+
 // Init settings var
 $settings = [];
 
@@ -80,6 +84,13 @@ $settings['jwt'] = [
     'issuer' => 'brain-notes',
     'audience' => 'brain-notes-api',
     'lifetime' => 21600, // 6 hours
+];
+
+$settings['security'] = [
+    'ip_blocking' => [
+        'max_404_attempts' => 10,
+        'interval_minutes' => 60,
+    ],
 ];
 
 return $settings;

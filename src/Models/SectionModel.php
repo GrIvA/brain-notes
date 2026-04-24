@@ -106,6 +106,12 @@ class SectionModel
 
     public function delete(int $id): bool
     {
+        // Check if there are notes in this section
+        $notesCount = $this->db->count('notes', ['section_id' => $id]);
+        if ($notesCount > 0) {
+            return false;
+        }
+
         $result = $this->db->delete($this->table, ['id' => $id]);
         return $result->rowCount() > 0;
     }

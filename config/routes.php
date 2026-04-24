@@ -35,6 +35,10 @@ return function (App $app) {
     $app->group('/api/v1', function ($group) {
         $group->get('/test-registry', \App\Controllers\Api\TestRegistryController::class);
 
+        // Security / IP Blocking
+        $group->get('/security/ips', \App\Controllers\Api\SecurityController::class . ':listIps');
+        $group->patch('/security/ips/{ip}', \App\Controllers\Api\SecurityController::class . ':setStatus');
+
         // Notebooks
         $group->get('/notebooks', \App\Controllers\Api\NotebookController::class . ':index');
         $group->post('/notebooks', \App\Controllers\Api\NotebookController::class . ':store');
@@ -45,6 +49,18 @@ return function (App $app) {
         $group->post('/sections', \App\Controllers\Api\SectionController::class . ':store');
         $group->patch('/sections/{id}/move', \App\Controllers\Api\SectionController::class . ':move');
         $group->delete('/sections/{id}', \App\Controllers\Api\SectionController::class . ':delete');
+
+        // Notes
+        $group->get('/notes/search-by-tags', \App\Controllers\Api\TagController::class . ':search');
+        $group->patch('/notes/move', \App\Controllers\Api\NoteController::class . ':move');
+        $group->post('/notes', \App\Controllers\Api\NoteController::class . ':store');
+        $group->get('/notes/{id}', \App\Controllers\Api\NoteController::class . ':show');
+        $group->put('/notes/{id}', \App\Controllers\Api\NoteController::class . ':update');
+        $group->delete('/notes/{id}', \App\Controllers\Api\NoteController::class . ':delete');
+
+        // Tags
+        $group->get('/tags', \App\Controllers\Api\TagController::class . ':index');
+        $group->post('/notes/{note_id}/tags', \App\Controllers\Api\TagController::class . ':sync');
 
     })->add(\App\Middleware\ApiContentTypeMiddleware::class)
       ->add(\App\Middleware\AuthMiddleware::class);

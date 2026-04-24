@@ -42,7 +42,6 @@ final class RedirectHandler
     ): ResponseInterface {
         // Resolve page ID to URL alias if needed.
         if (is_int($destination)) {
-            // The helper function is part of the legacy codebase.
             // It returns a string URL for the given page ID.
             $destination = getAliasByPageID($destination);
         }

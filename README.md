@@ -12,7 +12,11 @@
 - **Markdown:** `erusev/parsedown`.
 
 ## Архітектура додатку
-- **Middleware**: Логіка обробки запитів (мова, аліаси, безпека).
+- **Middleware**: Логіка обробки запитів.
+    - `IpSecurityMiddleware`: Блокування підозрілих IP адрес (перший у ланцюжку).
+    - `AuthMiddleware`: Глобальна автентифікація.
+    - `LanguageMiddleware`: Визначення мови.
+    - `PageAliasMiddleware`: Робота з аліасами сторінок.
 - **Services**: Бізнес-логіка (переклади, робота з XML).
 - **Models**: Шар доступу до даних (Data Access Layer). Усі запити до Medoo інкапсульовані в класах моделей у `src/Models/`.
 - **Notebooks & Sections**: Ієрархічна структура зошитів та розділів з підтримкою деревовидної вкладеності (Recursive Adjacency List).
@@ -110,5 +114,80 @@ curl -X PATCH http://blog.test:88/api/v1/sections/2/move \
      -H "Content-Type: application/json" \
      -b cookies.txt \
      -d '{"parent_id": 3}'
+```
+
+### Notes Management
+Нотатки завжди належать до певного розділу.
+
+**Створення нотатки:**
+```bash
+curl -X POST http://blog.test:88/api/v1/notes \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"section_id": 1, "title": "Перша нотатка", "content": "# Hello\nThis is md.", "attributes": 0}'
+```
+
+**Отримання нотатки:**
+```bash
+curl -X GET http://blog.test:88/api/v1/notes/1 -b cookies.txt
+```
+
+**Масове перенесення нотаток за списком ID:**
+```bash
+curl -X PATCH http://blog.test:88/api/v1/notes/move \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"target_section_id": 2, "note_ids": [1, 2, 3]}'
+```
+
+**Масова міграція всіх нотаток з розділу в розділ:**
+```bash
+curl -X PATCH http://blog.test:88/api/v1/notes/move \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"target_section_id": 2, "source_section_id": 1}'
+```
+
+### Tags Management
+Система підтримує глобальні теги в межах користувача з автоматичним нормуванням.
+
+**Отримання списку всіх тегів (словник):**
+```bash
+curl -X GET http://blog.test:88/api/v1/tags -b cookies.txt
+```
+
+**Прив'язка тегів до нотатки:**
+```bash
+curl -X POST http://blog.test:88/api/v1/notes/1/tags \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"tags": ["PHP", "web", "Backend"]}'
+```
+
+**Пошук нотаток за декількома тегами (AND за замовчуванням):**
+```bash
+curl -X GET "http://blog.test:88/api/v1/notes/search-by-tags?tag_ids[]=1&tag_ids[]=2" -b cookies.txt
+```
+
+**Пошук за тегами у режимі OR (хоча б один):**
+```bash
+curl -X GET "http://blog.test:88/api/v1/notes/search-by-tags?tag_ids[]=1&tag_ids[]=2&mode=OR" -b cookies.txt
+```
+
+### IP security
+Отримання списку всіх IPs:
+```bash
+curl -X GET http://blog.test:88/api/v1/security/ips \
+     -H "Content-Type: application/json" \
+     -b cookies.txt
+
+```
+
+Зміна статусу IP (normal, allow, disabled):**
+```bash
+curl -X PATCH http://blog.test:88/api/v1/security/ips/1.2.3.4 \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"status": "allow"}'
 ```
 

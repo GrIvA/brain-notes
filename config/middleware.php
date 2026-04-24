@@ -24,4 +24,7 @@ return function (Slim\App $app) {
 
     // Handle exceptions and display error page
     $app->add(ExceptionHandlingMiddleware::class);
+
+    // IP Security Blocking (Must be outermost to block requests early)
+    $app->add(\App\Middleware\IpSecurityMiddleware::class);
 };

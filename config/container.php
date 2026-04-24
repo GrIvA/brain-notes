@@ -21,6 +21,9 @@ use App\Models\RegistryModel;
 use App\Models\UserModel;
 use App\Models\NotebookModel;
 use App\Models\SectionModel;
+use App\Models\NoteModel;
+use App\Models\TagModel;
+use App\Models\IpModel;
 use App\Middleware\AuthMiddleware;
 use App\Services\AuthService;
 use App\Services\LanguageService;
@@ -75,6 +78,21 @@ return [
         return new SectionModel($container->get('dbase'));
     },
 
+    NoteModel::class => function (ContainerInterface $container) {
+        return new NoteModel($container->get('dbase'));
+    },
+
+    TagModel::class => function (ContainerInterface $container) {
+        return new TagModel($container->get('dbase'));
+    },
+
+    IpModel::class => function (ContainerInterface $container) {
+        return new IpModel(
+            $container->get('dbase'),
+            $container->get(LoggerInterface::class)
+        );
+    },
+
     AuthMiddleware::class => function (ContainerInterface $container) {
         $settings = $container->get('settings')['jwt'];
         return new AuthMiddleware(
@@ -107,6 +125,10 @@ return [
 
     PageAliasMiddleware::class => function (ContainerInterface $container) {
         return new PageAliasMiddleware($container);
+    },
+
+    IpSecurityMiddleware::class => function (ContainerInterface $container) {
+        return new IpSecurityMiddleware($container);
     },
 
     // HTTP factories
