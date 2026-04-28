@@ -42,6 +42,7 @@ return function (App $app) {
         // Notebooks
         $group->get('/notebooks', \App\Controllers\Api\NotebookController::class . ':index');
         $group->post('/notebooks', \App\Controllers\Api\NotebookController::class . ':store');
+        $group->patch('/notebooks/{id}', \App\Controllers\Api\NotebookController::class . ':update');
         $group->delete('/notebooks/{id}', \App\Controllers\Api\NotebookController::class . ':delete');
 
         // Sections

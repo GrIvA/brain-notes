@@ -92,7 +92,7 @@ class IpSecurityMiddleware implements MiddlewareInterface
             $fenom = $this->container->get('tmpl');
             $html = $fenom->fetch('pages/blocked.tpl', [
                 'ip' => $ip,
-                'contact' => $contact
+                'contact' => $contact,
             ]);
             $response->getBody()->write($html);
             return $response->withHeader('Content-Type', 'text/html');

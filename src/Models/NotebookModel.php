@@ -8,6 +8,8 @@ use Medoo\Medoo;
 
 class NotebookModel
 {
+    public const ATTR_DEFAULT = 1;
+
     private Medoo $db;
     private string $table = 'notebooks';
 
@@ -45,5 +47,20 @@ class NotebookModel
     {
         $result = $this->db->delete($this->table, ['id' => $id]);
         return $result->rowCount() > 0;
+    }
+
+    /**
+     * Reset ATTR_DEFAULT for all notebooks of a specific user.
+     */
+    public function resetDefaultNotebook(int $userId): void
+    {
+        $notebooks = $this->findByUserId($userId);
+        foreach ($notebooks as $notebook) {
+            $attr = (int)$notebook['attributes'];
+            if ($attr & self::ATTR_DEFAULT) {
+                $newAttr = $attr & ~self::ATTR_DEFAULT;
+                $this->update((int)$notebook['id'], ['attributes' => $newAttr]);
+            }
+        }
     }
 }

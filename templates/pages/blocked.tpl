@@ -1,4 +1,4 @@
-{extends 'layouts/main.tpl'}
+{extends 'layouts/empty.tpl'}
 
 {block 'content'}
 <article class="container" style="max-width: 600px; margin-top: 5rem; text-align: center;">

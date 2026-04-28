@@ -76,6 +76,37 @@ class NotebookController extends AbstractController
         return $this->jsonResponse($res, ['message' => 'Notebook deleted']);
     }
 
+    public function update(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
+    {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        if (!$user) {
+            return $this->jsonResponse($res, ['error' => 'Unauthorized'], 401);
+        }
+        $id = (int)($args['id'] ?? 0);
+        $data = $req->getParsedBody();
+
+        $notebook = $this->notebookModel->findById($id);
+        if (!$notebook || (int)$notebook['user_id'] !== $user->getId()) {
+            return $this->jsonResponse($res, ['error' => 'Notebook not found'], 404);
+        }
+
+        $attributes = (int)($data['attributes'] ?? $notebook['attributes']);
+        $title = $data['title'] ?? $notebook['title'];
+
+        // Якщо встановлюється прапор ATTR_DEFAULT, скидаємо його у інших зошитів
+        if ($attributes & NotebookModel::ATTR_DEFAULT && !((int)$notebook['attributes'] & NotebookModel::ATTR_DEFAULT)) {
+            $this->notebookModel->resetDefaultNotebook($user->getId());
+        }
+
+        $this->notebookModel->update($id, [
+            'title' => $title,
+            'attributes' => $attributes
+        ]);
+
+        return $this->jsonResponse($res, ['message' => 'Notebook updated']);
+    }
+
     private function jsonResponse(ResponseInterface $res, $data, int $status = 200): ResponseInterface
     {
         $res->getBody()->write(json_encode($data, JSON_UNESCAPED_UNICODE));

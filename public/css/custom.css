@@ -81,16 +81,53 @@ ul li .lang-switcher {
 }
 ul li .lang-switcher summary { padding: 0 7px; }
 
-/* Випадаючий список */
-ul li .lang-switcher ul {
-    position: absolute;
-    left: 0 !important;
-    right: auto !important;
-    width: max-content !important;
-    min-width: 100% !important;
-    margin: 0.25rem 0 0 0 !important;
-    padding: 0.5rem 0 !important;
-    box-shadow: var(--pico-card-box-shadow);
-    z-index: 1000;
+/***********
+ *         *
+ * Sidebar *
+ *         *
+ ***********/
+
+#sidebar.sidebar-logo {
+    display: block;
+    text-align: center;
+}
+.user-hello { text-align: center; }
+
+#side-notebook-selector {
+    border-radius:.6rem;
+    border: 1px solid #bbb;
+}
+#notebook-select {
+    margin: 0.4rem 0;
+    border-radius: 2rem;
+    padding: 3px 12px;
 }
 
+#section-tree {
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
+    background-color: transparent;
+}
+
+/* jsTree overrides to match Pico CSS */
+@media (max-width: 768px) {
+  #section-tree.jstree-default-dark-responsive .jstree-wholerow,
+  #section-tree.jstree-default-responsive .jstree-wholerow {
+    border: none;
+    height: 40px;
+    background-color: transparent;
+  }
+  #section-tree.jstree-default-responsive .jstree-children .jstree-open > .jstree-wholerow {
+    box-shadow: none;
+    border-top: 1px solid #bbb;
+  }
+ #section-tree.jstree-default-responsive .jstree-children .jstree-last > .jstree-wholerow {
+    box-shadow: none;
+    border-bottom: 1px solid #bbb;
+  }
+  #section-tree.jstree-default-responsive .jstree-anchor {
+    font-weight: normal;
+    font-size: 1rem;
+    text-shadow: none;
+  }
+}

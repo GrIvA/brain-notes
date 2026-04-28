@@ -1,6 +1,6 @@
 <aside id="sidebar">
     <div class="sidebar-logo">
-        <a href="/{'home'|getPageURL}" style="display: block; text-align: center;">
+        <a href="/{'home'|getPageURL}">
             <img src="/logo2.png" alt="Logo">
         </a>
         <hr>
@@ -8,8 +8,18 @@
 
     <nav>
         {if $user}
-            <div style="padding: 0 0.5rem 1rem;">
+            <div class="user-hello">
                 <strong>Вітаємо, {$user.name}!</strong>
+            </div>
+
+            <div class="side-notebook-selector" x-data="sidebarTree()" x-init="initTree()">
+                    <select id="notebook-select" x-model="activeNotebookId" @change="loadTree()">
+                        <template x-for="nb in notebooks" :key="nb.id">
+                            <option :value="nb.id" x-text="nb.title" :selected="nb.id == activeNotebookId"></option>
+                        </template>
+                    </select>
+                </div>
+                <div id="section-tree"></div>
             </div>
         {/if}
         <ul>

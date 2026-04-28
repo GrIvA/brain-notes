@@ -95,6 +95,14 @@ curl -X POST http://blog.test:88/api/v1/notebooks \
 curl -X GET http://blog.test:88/api/v1/notebooks -b cookies.txt
 ```
 
+**Оновлення зошита (встановлення прапора за замовчуванням):**
+```bash
+curl -X PATCH http://blog.test:88/api/v1/notebooks/1 \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"attributes": 1}'
+```
+
 **Додавання розділу (кореневого):**
 ```bash
 curl -X POST http://blog.test:88/api/v1/sections \
