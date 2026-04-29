@@ -28,9 +28,13 @@ class Homepage extends SiteController
     // PRIVATE
     private function checkArgs(): array
     {
-        //$tags = $this->user->getInfo()['tags'] ?? [];
+        $tagModel = $this->container->get(\App\Models\TagModel::class);
+        $noteModel = $this->container->get(\App\Models\NoteModel::class);
 
-        //$this->params['last_articles'] = $this->container['Article']->getLastArticles(6, $exept_ids, $tags);
+        $userId = $this->user ? $this->user->getId() : null;
+        
+        $this->params['tags'] = $userId ? $tagModel->getAllUserTags($userId) : [];
+        $this->params['notes'] = $noteModel->findFiltered(['user_id' => $userId]);
 
         $result = ['status' => SiteController::HANDLING_STATUS_OK];
         return $result;

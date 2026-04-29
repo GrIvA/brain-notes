@@ -178,6 +178,10 @@ return [
 
     'Homepage' => function($c) { return new Homepage($c); },
 
+    Parsedown::class => function (ContainerInterface $container) {
+        return new Parsedown();
+    },
+
     'tmpl' => function ( ContainerInterface $container ) {
         $fenomSettings = $container->get('settings')['fenom'];
 
@@ -246,23 +250,14 @@ return [
 
             return $ls->getAbrByID($lang_current_id) . '/' . $alias['alias'];
         });
-        /*
-        $fenom->addModifier('logo', function ($url) use ($c) {
-            // {$common.additional_params.image_server}
-            $result = file_exists(WEBDIR . 'images/' . $url)
-                ? '/images/' . $url
-                : $c['settings']['additional_params']['image_server'] . $url;
-            return $result;
-        });
-        $fenom->addModifier('markdown', function ($text) use ($c) {
+        $fenom->addModifier('markdown', function ($text) use ($container) {
             if (empty($text)) {
                 return '';
             }
-            $parser = $c['Parsedown'];
+            $parser = $container->get(Parsedown::class);
 
             return $parser->setMarkupEscaped(false)->text($text);
         });
-         */
 
         $fenom->addBlockFunction('doNotShow', function (array $params, $content) {
             return '';

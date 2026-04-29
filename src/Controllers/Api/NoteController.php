@@ -8,6 +8,7 @@ use App\Abstract\AbstractController;
 use App\Models\NoteModel;
 use App\Models\SectionModel;
 use App\Models\NotebookModel;
+use App\Models\TagModel;
 use App\Entities\User;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -57,7 +58,8 @@ class NoteController extends AbstractController
             return $this->jsonResponse($res, ['error' => 'Note not found'], 404);
         }
 
-        $note['tags'] = $this->tagModel->getTagsByNoteId($id);
+        $tagModel = $this->container->get(TagModel::class);
+        $note['tags'] = $tagModel->getTagsByNoteId($id);
 
         return $this->jsonResponse($res, $note);
     }
@@ -149,6 +151,32 @@ class NoteController extends AbstractController
         return $this->jsonResponse($res, ['error' => 'Invalid parameters'], 400);
     }
 
+    /**
+     * Return a list of notes as HTML fragment.
+     */
+    public function listFiltered(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        $queryParams = $req->getQueryParams();
+        
+        $criteria = [
+            'tag_ids' => $queryParams['tag_ids'] ?? [],
+            'section_id' => $queryParams['section_id'] ?? null,
+            'user_id' => $user ? $user->getId() : null
+        ];
+
+        $notes = $this->noteModel->findFiltered($criteria);
+
+        $tmpl = $this->container->get('tmpl');
+        $html = $tmpl->fetch('components/note_list.tpl', [
+            'notes' => $notes
+        ]);
+
+        $res->getBody()->write($html);
+        return $res;
+    }
+
     private function getSectionOwnerId(int $sectionId): ?int
     {
         $section = $this->sectionModel->findById($sectionId);
@@ -173,8 +201,5 @@ class NoteController extends AbstractController
     {
         $res->getBody()->write(json_encode($data, JSON_UNESCAPED_UNICODE));
         return $res->withHeader('Content-Type', 'application/json')->withStatus($status);
-    }
-}
-ithStatus($status);
     }
 }

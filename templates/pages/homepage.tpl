@@ -2,26 +2,16 @@
 
 {block 'content'}
 <section>
-    <h2>This is home</h2>
+    <header>
+        <h2><i class="fas fa-home"></i> Головна</h2>
+    </header>
     
-    <div class="grid">
-        <!-- Alpine.js Test -->
-        <article x-data="{ count: 0 }">
-            <header><strong>Alpine.js Test</strong></header>
-            <p>Count: <span x-text="count"></span></p>
-            <button @click="count++" class="outline">Increment</button>
-        </article>
-
-        <!-- HTMX Test -->
-        <article>
-            <header><strong>HTMX Test</strong></header>
-            <div id="htmx-result">Click to load content...</div>
-            <button hx-get="/hello" hx-target="#htmx-result" hx-swap="outerHTML" class="secondary">
-                Load Hello Fragment
-            </button>
-        </article>
+    <div id="note-list">
+        {include 'components/note_list.tpl' notes=$notes}
     </div>
+
+    {if $tags}
+        {include 'components/tag_block.tpl' mode='filter' tags=$tags}
+    {/if}
 </section>
 {/block}
-
-

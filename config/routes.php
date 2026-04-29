@@ -27,6 +27,8 @@ return function (App $app) {
     $app->get('/login', \App\Controllers\Pages\LoginPage::class . ':handle')->setName('login');
     $app->get('/register', \App\Controllers\Pages\RegisterPage::class . ':handle')->setName('register');
     
+    $app->get('/note/{id}', \App\Controllers\Pages\NotePage::class . ':handle')->setName('note_view')->add(\App\Middleware\AuthMiddleware::class);
+
     $app->post('/login', \App\Controllers\Api\AuthController::class . ':login');
     $app->post('/register', \App\Controllers\Api\AuthController::class . ':register');
     $app->post('/logout', \App\Controllers\Api\AuthController::class . ':logout')->add(\App\Middleware\AuthMiddleware::class);
@@ -53,15 +55,18 @@ return function (App $app) {
 
         // Notes
         $group->get('/notes/search-by-tags', \App\Controllers\Api\TagController::class . ':search');
+        $group->get('/notes/list', \App\Controllers\Api\NoteController::class . ':listFiltered');
         $group->patch('/notes/move', \App\Controllers\Api\NoteController::class . ':move');
         $group->post('/notes', \App\Controllers\Api\NoteController::class . ':store');
         $group->get('/notes/{id}', \App\Controllers\Api\NoteController::class . ':show');
         $group->put('/notes/{id}', \App\Controllers\Api\NoteController::class . ':update');
         $group->delete('/notes/{id}', \App\Controllers\Api\NoteController::class . ':delete');
+        $group->delete('/notes/{note_id}/tags/{tag_id}', \App\Controllers\Api\TagController::class . ':remove');
 
         // Tags
         $group->get('/tags', \App\Controllers\Api\TagController::class . ':index');
         $group->post('/notes/{note_id}/tags', \App\Controllers\Api\TagController::class . ':sync');
+        $group->post('/notes/{note_id}/tags/add', \App\Controllers\Api\TagController::class . ':add');
 
     })->add(\App\Middleware\ApiContentTypeMiddleware::class)
       ->add(\App\Middleware\AuthMiddleware::class);

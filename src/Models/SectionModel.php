@@ -53,6 +53,23 @@ class SectionModel
         return $branch;
     }
 
+    /**
+     * Get all ancestors of a section (including itself).
+     */
+    public function getAncestors(int $sectionId): array
+    {
+        $path = [];
+        $currentId = $sectionId;
+        while ($currentId !== null) {
+            $section = $this->findById($currentId);
+            if (!$section) break;
+            
+            array_unshift($path, $section);
+            $currentId = $section['parent_id'] ? (int)$section['parent_id'] : null;
+        }
+        return $path;
+    }
+
     public function create(array $data): int|string|null
     {
         $data['created_at'] = date('Y-m-d H:i:s');

@@ -20,7 +20,7 @@
         <!--<script src="/js/tools/ic.js"></script>-->
         {block 'js'}{/block}
 
-        <link rel="stylesheet" href="/css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="/css/fontawesome-6.5.1.min.css">
         <!-- Підключення Pico CSS v2 з темою Slate -->
         <link rel="stylesheet" href="/css/pico.custom.min.css">
         <link rel="stylesheet" href="/css/custom.css">

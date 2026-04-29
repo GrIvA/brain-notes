@@ -43,6 +43,33 @@ class TagController extends AbstractController
     }
 
     /**
+     * Add a single tag to a specific note.
+     */
+    public function add(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
+    {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        $noteId = (int)($args['note_id'] ?? 0);
+        $data = $req->getParsedBody();
+        $tagName = $data['tag'] ?? '';
+
+        if (empty($tagName)) {
+            return $this->jsonResponse($res, ['error' => 'Tag name is required'], 400);
+        }
+
+        // Check ownership of the note
+        $note = $this->noteModel->findById($noteId);
+        if (!$note || !$this->checkSectionAccess((int)$note['section_id'], $user)) {
+            return $this->jsonResponse($res, ['error' => 'Note not found'], 404);
+        }
+
+        $this->tagModel->addTagToNote($noteId, $user->getId(), $tagName);
+
+        // Redirect back or return a success header for HTMX to trigger a reload
+        return $res->withHeader('HX-Refresh', 'true');
+    }
+
+    /**
      * Sync tags for a specific note.
      */
     public function sync(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
@@ -91,6 +118,27 @@ class TagController extends AbstractController
         $notes = $this->tagModel->findNotesByTagIds($user->getId(), array_map('intval', $tagIds), $mode);
 
         return $this->jsonResponse($res, $notes);
+    }
+
+    /**
+     * Remove a tag from a specific note.
+     */
+    public function remove(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
+    {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        $noteId = (int)($args['note_id'] ?? 0);
+        $tagId = (int)($args['tag_id'] ?? 0);
+
+        // Check ownership of the note
+        $note = $this->noteModel->findById($noteId);
+        if (!$note || !$this->checkSectionAccess((int)$note['section_id'], $user)) {
+            return $this->jsonResponse($res, ['error' => 'Note not found or access denied'], 404);
+        }
+
+        $this->tagModel->removeTagFromNote($noteId, $tagId);
+
+        return $this->jsonResponse($res, ['message' => 'Tag removed']);
     }
 
     private function checkSectionAccess(int $sectionId, ?User $user): bool

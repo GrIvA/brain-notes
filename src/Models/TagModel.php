@@ -30,6 +30,47 @@ class TagModel
     }
 
     /**
+     * Add a single tag to a note by name.
+     */
+    public function addTagToNote(int $noteId, int $userId, string $tagName): bool
+    {
+        $tagName = mb_strtolower(trim(str_replace('#', '', $tagName)));
+        if (empty($tagName)) return false;
+
+        // 1. Get or create tag
+        $tag = $this->db->get($this->tableTags, ['id'], [
+            'user_id' => $userId,
+            'name' => $tagName
+        ]);
+
+        if (!$tag) {
+            $this->db->insert($this->tableTags, [
+                'user_id' => $userId,
+                'name' => $tagName
+            ]);
+            $tagId = (int)$this->db->id();
+        } else {
+            $tagId = (int)$tag['id'];
+        }
+
+        // 2. Link to note if not already linked
+        $exists = $this->db->has($this->tableNoteTags, [
+            'note_id' => $noteId,
+            'tag_id' => $tagId
+        ]);
+
+        if (!$exists) {
+            $this->db->insert($this->tableNoteTags, [
+                'note_id' => $noteId,
+                'tag_id' => $tagId
+            ]);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Sync tags for a note.
      * Creates new tags if they don't exist.
      */
@@ -78,6 +119,18 @@ class TagModel
             }
             $this->db->insert($this->tableNoteTags, $data);
         }
+    }
+
+    /**
+     * Remove a specific tag from a note.
+     */
+    public function removeTagFromNote(int $noteId, int $tagId): bool
+    {
+        $result = $this->db->delete($this->tableNoteTags, [
+            'note_id' => $noteId,
+            'tag_id' => $tagId
+        ]);
+        return $result->rowCount() > 0;
     }
 
     /**

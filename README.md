@@ -29,14 +29,19 @@
 Ми використовуємо структуровану систему шаблонів у `templates/`:
 - `layouts/`: Базові макети сторінок (наприклад, `main.tpl`).
 - `pages/`: Специфічні шаблони для кожного маршруту.
-- `components/`: Багаторазові HTML-фрагменти, готові для використання з HTMX.
+- `components/`: Багаторазові HTML-фрагменти, готові для використання з HTMX (включаючи `tag_block`, `note_list`, `tag_autocomplete`).
 
 ## Структура зберігання даних
 - `storage/db/`: Містить файл бази даних SQLite (`database.db`). Директорія захищена від прямого доступу та ігнорується системою контролю версій Git.
 - `logs/`: Директорія для логів додатку.
 
+## Особливості
+- **Ієрархія:** Деревоподібна структура зошитів та розділів.
+- **Керування тегами:** Динамічна фільтрація нотаток за тегами та вбудований автокомпліт для швидкого тегування.
+- **Інтерактивність:** Панель керування нотатками з підтримкою HTMX для миттєвого оновлення.
+
 ## Локальні бібліотеки
-Усі фронтенд-бібліотеки (`htmx.min.js`, `alpine.min.js`) розміщені локально в `public/js/` для забезпечення приватності та швидкості.
+Усі фронтенд-бібліотеки (`htmx.min.js`, `alpine.min.js`, `tag-autocomplete.js`) розміщені локально в `public/js/` для забезпечення приватності та швидкості. Шрифти FontAwesome 6.5.1 знаходяться у `public/webfonts/`.
 
 ## Автентифікація
 Система підтримує реєстрацію, вхід та вихід користувачів:
@@ -47,8 +52,9 @@
 ## Корисні команди (Docker)
 - Виконання PHP: `docker exec -w /app/blog/html web8 php [args]`
 - Запуск тестів:
-  - Автентифікація: `docker exec -w /app/blog/html web8 php tests/API/user/test_auth_flow.php`
-  - Зошити та Розділи: `docker exec -w /app/blog/html web8 php tests/API/notebook/verify_notebook_api.php`
+  - Автентифікація: `docker exec -w /app/blog/html web8 php tests/Site/user/test_auth_flow.php`
+  - Перегляд нотаток: `docker exec -w /app/blog/html web8 php tests/Site/user/test_note_view.php`
+  - Фільтрація тегами: `docker exec -w /app/blog/html web8 php tests/Site/user/test_tag_filtering.php`
 
 ## API Usage (cURL examples)
 
@@ -188,7 +194,6 @@ curl -X GET "http://blog.test:88/api/v1/notes/search-by-tags?tag_ids[]=1&tag_ids
 curl -X GET http://blog.test:88/api/v1/security/ips \
      -H "Content-Type: application/json" \
      -b cookies.txt
-
 ```
 
 Зміна статусу IP (normal, allow, disabled):**
@@ -198,4 +203,3 @@ curl -X PATCH http://blog.test:88/api/v1/security/ips/1.2.3.4 \
      -b cookies.txt \
      -d '{"status": "allow"}'
 ```
-

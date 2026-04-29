@@ -30,6 +30,47 @@ class NoteModel
         return $this->db->select($this->table, '*', ['section_id' => $sectionId]);
     }
 
+    /**
+     * Find notes with filtering by tags, section, or notebook.
+     */
+    public function findFiltered(array $criteria): array
+    {
+        $where = [];
+
+        if (!empty($criteria['section_id'])) {
+            $where['section_id'] = $criteria['section_id'];
+        }
+
+        if (!empty($criteria['tag_ids'])) {
+            $tagIds = array_map('intval', (array)$criteria['tag_ids']);
+            $total = count($tagIds);
+            
+            // Subquery to find notes that have ALL requested tags
+            $query = "SELECT note_id FROM note_tags 
+                      WHERE tag_id IN (" . implode(',', $tagIds) . ") 
+                      GROUP BY note_id 
+                      HAVING COUNT(tag_id) = {$total}";
+            
+            $noteIds = $this->db->query($query)->fetchAll(\PDO::FETCH_COLUMN);
+            
+            if (empty($noteIds)) {
+                return [];
+            }
+            $where['id'] = $noteIds;
+        }
+
+        if (!empty($criteria['user_id'])) {
+            // Ensure notes belong to the user via notebook
+            $notebookIds = $this->db->select('notebooks', 'id', ['user_id' => $criteria['user_id']]);
+            $sectionIds = $this->db->select('sections', 'id', ['notebook_id' => $notebookIds]);
+            $where['section_id'] = $sectionIds;
+        }
+
+        $where['ORDER'] = ['created_at' => 'DESC'];
+
+        return $this->db->select($this->table, '*', $where);
+    }
+
     public function create(array $data): int|string|null
     {
         $data['created_at'] = date('Y-m-d H:i:s');
