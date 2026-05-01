@@ -9,9 +9,5 @@
     <div id="note-list">
         {include 'components/note_list.tpl' notes=$notes}
     </div>
-
-    {if $tags}
-        {include 'components/tag_block.tpl' mode='filter' tags=$tags}
-    {/if}
 </section>
 {/block}

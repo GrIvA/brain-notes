@@ -28,24 +28,33 @@ final readonly class RedirectHandler
         ResponseInterface $response,
         string $destination,
         array $queryParams = [],
+        int $status = 302
     ): ResponseInterface {
-        global $app;
         if (is_numeric($destination)) {
-            $destination = getAliasByPageID($destination);
+            $destination = getAliasByPageID((int)$destination);
         }
 
         if ($queryParams) {
             $destination = sprintf('%s?%s', $destination, http_build_query($queryParams));
         }
 
-        return $response->withStatus(302)->withHeader('Location', $destination);
+        return $response->withStatus($status)->withHeader('Location', $destination);
+    }
+
+    /**
+     * Alias for redirectToRouteName for convenience.
+     */
+    public static function redirectToRoute(
+        ResponseInterface $response,
+        string $routeName,
+        array $data = [],
+        array $queryParams = []
+    ): ResponseInterface {
+        return self::redirectToRouteName($response, $routeName, $data, $queryParams);
     }
 
     /**
      * Creates a redirect for the given route name.
-     *
-     * This method prepares the response object to return an HTTP Redirect
-     * response to the client.
      *
      * @param ResponseInterface $response The response
      * @param string $routeName The redirect route name
@@ -60,8 +69,22 @@ final readonly class RedirectHandler
         array $data = [],
         array $queryParams = [],
     ): ResponseInterface {
-        //$router_contex = RouteContext::fromRequest($req);
-        //$route = $router_contex->getRoute();
-        return $this->redirectToUrl($response, $this->routeParser->urlFor($routeName, $data, $queryParams));
+        global $app;
+        $url = $app->getRouteCollector()->getRouteParser()->urlFor($routeName, $data, $queryParams);
+        return self::redirectToUrl($response, $url);
+    }
+
+    /**
+     * Creates an HTMX redirect.
+     *
+     * @param ResponseInterface $response
+     * @param string $destination
+     * @return ResponseInterface
+     */
+    public static function hxRedirect(
+        ResponseInterface $response,
+        string $destination
+    ): ResponseInterface {
+        return $response->withHeader('HX-Redirect', $destination)->withStatus(200);
     }
 }

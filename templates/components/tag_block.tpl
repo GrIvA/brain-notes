@@ -8,17 +8,31 @@
             } else {
                 this.activeTagIds.push(id);
             }
-            let url = '/api/v1/notes/list?' + this.activeTagIds.map(id => 'tag_ids[]=' + id).join('&');
-            htmx.ajax('GET', url, {
-                target: '#note-list'
-            });
+            
+            let queryParams = this.activeTagIds.map(id => 'tag_ids[]=' + id).join('&');
+            let isHome = '{$common.page_id}' === '1';
+            
+            if (isHome) {
+                // На головній — оновлюємо існуючий список
+                let url = '/api/v1/notes/list?' + queryParams;
+                htmx.ajax('GET', url, {
+                    target: '#note-list'
+                });
+            } else {
+                // На інших сторінках — відкриваємо модалку
+                if (this.activeTagIds.length > 0) {
+                    let url = '/api/v1/notes/list?view=modal&' + queryParams;
+                    htmx.ajax('GET', url, {
+                        target: '#modal-container'
+                    });
+                }
+            }
         }
      }">
 {/ignore}
-    <hr>
-    <h5><i class="fas fa-tags"></i> Теги</h5>
     <div class="tags-cloud">
         {if $mode == 'filter'}
+            <h5><i class="fas fa-tags"></i> Фільтр</h5>
             {foreach $tags as $tag}
                 <button 
                     class="tag-badge" 
@@ -44,12 +58,12 @@
                     {/if}
                 </span>
             {/foreach}
-            {if $canEdit}
-                <div class="add-tag-inline" style="margin-top: 1rem; max-width: 400px;">
-                    <small>Додати новий тег:</small>
-                    {include 'components/tag_autocomplete.tpl'}
-                </div>
-            {/if}
+        {elseif $mode == 'view'}
+            {foreach $tags as $tag}
+                <span class="tag-badge-view" style="display: inline-flex; align-items: center; margin-right: 0.5rem; margin-bottom: 0.5rem; border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius); padding: 0.2rem 0.5rem; background-color: var(--pico-code-background-color);">
+                    <small>{$tag.name}</small>
+                </span>
+            {/foreach}
         {/if}
     </div>
 </div>

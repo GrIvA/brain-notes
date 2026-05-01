@@ -83,8 +83,7 @@ class IpSecurityMiddleware implements MiddlewareInterface
                 'message' => "Your IP $ip is blocked due to suspicious activity.",
                 'contact' => $contact
             ];
-            $response->getBody()->write(json_encode($data, JSON_UNESCAPED_UNICODE));
-            return $response->withHeader('Content-Type', 'application/json');
+            return \App\Responder\JsonHandler::response($response, $data, 403);
         }
 
         // HTML Format

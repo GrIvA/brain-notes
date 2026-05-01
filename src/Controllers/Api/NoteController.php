@@ -35,7 +35,7 @@ class NoteController extends AbstractController
 
         $sectionId = (int)($data['section_id'] ?? 0);
         if (!$this->checkSectionAccess($sectionId, $user)) {
-            return $this->jsonResponse($res, ['error' => 'Unauthorized access to section'], 403);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized access to section'], 403);
         }
 
         $id = $this->noteModel->create([
@@ -45,7 +45,7 @@ class NoteController extends AbstractController
             'attributes' => (int)($data['attributes'] ?? 0)
         ]);
 
-        return $this->jsonResponse($res, ['id' => $id, 'message' => 'Note created'], 201);
+        return \App\Responder\JsonHandler::response($res, ['id' => $id, 'message' => 'Note created'], 201);
     }
 
     public function show(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
@@ -55,13 +55,13 @@ class NoteController extends AbstractController
 
         $note = $this->noteModel->findById($id);
         if (!$note || !$this->checkSectionAccess((int)$note['section_id'], $user)) {
-            return $this->jsonResponse($res, ['error' => 'Note not found'], 404);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Note not found'], 404);
         }
 
         $tagModel = $this->container->get(TagModel::class);
         $note['tags'] = $tagModel->getTagsByNoteId($id);
 
-        return $this->jsonResponse($res, $note);
+        return \App\Responder\JsonHandler::response($res, $note);
     }
 
     public function update(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
@@ -72,18 +72,18 @@ class NoteController extends AbstractController
 
         $note = $this->noteModel->findById($id);
         if (!$note || !$this->checkSectionAccess((int)$note['section_id'], $user)) {
-            return $this->jsonResponse($res, ['error' => 'Note not found'], 404);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Note not found'], 404);
         }
 
         // If changing section, check access to target section
         if (isset($data['section_id'])) {
             if (!$this->checkSectionAccess((int)$data['section_id'], $user)) {
-                return $this->jsonResponse($res, ['error' => 'Unauthorized access to target section'], 403);
+                return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized access to target section'], 403);
             }
         }
 
         $this->noteModel->update($id, $data);
-        return $this->jsonResponse($res, ['message' => 'Note updated']);
+        return \App\Responder\JsonHandler::response($res, ['message' => 'Note updated']);
     }
 
     public function delete(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
@@ -93,11 +93,11 @@ class NoteController extends AbstractController
 
         $note = $this->noteModel->findById($id);
         if (!$note || !$this->checkSectionAccess((int)$note['section_id'], $user)) {
-            return $this->jsonResponse($res, ['error' => 'Note not found'], 404);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Note not found'], 404);
         }
 
         $this->noteModel->delete($id);
-        return $this->jsonResponse($res, ['message' => 'Note deleted']);
+        return \App\Responder\JsonHandler::response($res, ['message' => 'Note deleted']);
     }
 
     public function move(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
@@ -108,7 +108,7 @@ class NoteController extends AbstractController
 
         $targetSectionId = (int)($data['target_section_id'] ?? 0);
         if (!$this->checkSectionAccess($targetSectionId, $user)) {
-            return $this->jsonResponse($res, ['error' => 'Unauthorized access to target section'], 403);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized access to target section'], 403);
         }
 
         $noteIds = $data['note_ids'] ?? null;
@@ -135,20 +135,20 @@ class NoteController extends AbstractController
                     implode(', ', $forbiddenNotes),
                     implode(', ', array_unique($owners))
                 ));
-                return $this->jsonResponse($res, ['error' => 'Unauthorized access to some notes'], 403);
+                return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized access to some notes'], 403);
             }
 
             $count = $this->noteModel->moveNotes($noteIds, $targetSectionId);
-            return $this->jsonResponse($res, ['message' => "Moved $count notes"]);
+            return \App\Responder\JsonHandler::response($res, ['message' => "Moved $count notes"]);
         } elseif ($sourceSectionId) {
             if (!$this->checkSectionAccess((int)$sourceSectionId, $user)) {
-                return $this->jsonResponse($res, ['error' => 'Unauthorized access to source section'], 403);
+                return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized access to source section'], 403);
             }
             $count = $this->noteModel->migrateAll((int)$sourceSectionId, $targetSectionId);
-            return $this->jsonResponse($res, ['message' => "Migrated $count notes"]);
+            return \App\Responder\JsonHandler::response($res, ['message' => "Migrated $count notes"]);
         }
 
-        return $this->jsonResponse($res, ['error' => 'Invalid parameters'], 400);
+        return \App\Responder\JsonHandler::response($res, ['error' => 'Invalid parameters'], 400);
     }
 
     /**
@@ -168,9 +168,18 @@ class NoteController extends AbstractController
 
         $notes = $this->noteModel->findFiltered($criteria);
 
+        // Attach tags to each note for display in note_list.tpl
+        $tagModel = $this->container->get(TagModel::class);
+        foreach ($notes as &$note) {
+            $note['tags'] = $tagModel->getTagsByNoteId((int)$note['id']);
+        }
+
         $tmpl = $this->container->get('tmpl');
-        $html = $tmpl->fetch('components/note_list.tpl', [
-            'notes' => $notes
+        $template = $queryParams['view'] === 'modal' ? 'components/modal_note_list.tpl' : 'components/note_list.tpl';
+        
+        $html = $tmpl->fetch($template, [
+            'notes' => $notes,
+            'user' => $user ? $user->toArray() : null
         ]);
 
         $res->getBody()->write($html);
@@ -195,11 +204,5 @@ class NoteController extends AbstractController
 
         $notebook = $this->notebookModel->findById((int)$section['notebook_id']);
         return $notebook && (int)$notebook['user_id'] === $user->getId();
-    }
-
-    private function jsonResponse(ResponseInterface $res, $data, int $status = 200): ResponseInterface
-    {
-        $res->getBody()->write(json_encode($data, JSON_UNESCAPED_UNICODE));
-        return $res->withHeader('Content-Type', 'application/json')->withStatus($status);
     }
 }

@@ -149,6 +149,27 @@ class TagModel
     }
 
     /**
+     * Get unique tags assigned to a list of notes.
+     */
+    public function getTagsByNoteIds(array $noteIds): array
+    {
+        if (empty($noteIds)) {
+            return [];
+        }
+
+        return $this->db->select($this->tableNoteTags, [
+            "[>]tags" => ["tag_id" => "id"]
+        ], [
+            "tags.id",
+            "tags.name"
+        ], [
+            "note_tags.note_id" => $noteIds,
+            "GROUP" => ["tags.id", "tags.name"],
+            "ORDER" => ["tags.name" => "ASC"]
+        ]);
+    }
+
+    /**
      * Find notes by tag IDs.
      * Mode 'AND' finds notes containing ALL tags.
      * Mode 'OR' finds notes containing ANY of the tags.
@@ -188,6 +209,37 @@ class TagModel
         }
 
         return $this->db->select('notes', '*', ['id' => $noteIds]);
+    }
+
+    /**
+     * Get tags assigned to any public note.
+     */
+    public function getPublicTags(): array
+    {
+        $query = "SELECT t.id, t.name FROM {$this->tableTags} t
+                  JOIN {$this->tableNoteTags} nt ON t.id = nt.tag_id
+                  JOIN notes n ON nt.note_id = n.id
+                  WHERE (n.attributes & 1) = 1
+                  GROUP BY t.id, t.name
+                  ORDER BY t.name ASC";
+        
+        return $this->db->query($query)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get tags belonging to a user PLUS tags from any public note.
+     */
+    public function getCombinedTags(int $userId): array
+    {
+        $query = "SELECT t.id, t.name FROM {$this->tableTags} t
+                  LEFT JOIN {$this->tableNoteTags} nt ON t.id = nt.tag_id
+                  LEFT JOIN notes n ON nt.note_id = n.id
+                  WHERE t.user_id = :user_id 
+                     OR (n.attributes & 1) = 1
+                  GROUP BY t.id, t.name
+                  ORDER BY t.name ASC";
+        
+        return $this->db->query($query, [':user_id' => $userId])->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     /**

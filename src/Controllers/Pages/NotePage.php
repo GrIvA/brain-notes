@@ -25,7 +25,25 @@ class NotePage extends SiteController
         $this->noteData = $noteModel->findById($noteId);
 
         if (!$this->noteData) {
-            return $response->withStatus(404);
+            throw new \Slim\Exception\HttpNotFoundException($request, "Нотатку не знайдено");
+        }
+
+        // Security Check: Note must belong to the current user
+        $sectionModel = $this->container->get(SectionModel::class);
+        $notebookModel = $this->container->get(NotebookModel::class);
+        
+        $section = $sectionModel->findById((int)$this->noteData['section_id']);
+        $notebook = $notebookModel->findById((int)$section['notebook_id']);
+        
+        $isOwner = $this->user instanceof \App\Entities\User && (int)$this->user->getId() === (int)$notebook['user_id'];
+        $isPublic = ((int)$this->noteData['attributes'] & NoteModel::ATTR_PUBLIC) === NoteModel::ATTR_PUBLIC;
+
+        if (!$isOwner && !$isPublic) {
+            if (!$this->user) {
+                // Redirect to login if not authenticated
+                return \App\Responder\RedirectHandler::redirectToRoute($response, 'login');
+            }
+            throw new \Slim\Exception\HttpForbiddenException($request, "У вас немає прав для перегляду цієї нотатки");
         }
 
         $this->prepareNoteParams();
@@ -40,6 +58,8 @@ class NotePage extends SiteController
         $tagModel = $this->container->get(TagModel::class);
 
         $noteId = (int)$this->noteData['id'];
+        
+        // These were already fetched in handle() for security check, but for clarity and keeping the structure:
         $section = $sectionModel->findById((int)$this->noteData['section_id']);
         $notebook = $notebookModel->findById((int)$section['notebook_id']);
         
@@ -60,6 +80,9 @@ class NotePage extends SiteController
         // Tags
         $tags = $tagModel->getTagsByNoteId($noteId);
         $allUserTags = $canEdit ? $tagModel->getAllUserTags($this->user->getId()) : [];
+        
+        // Sync active notebook in sidebar
+        $this->params['common']['active_notebook_id'] = (int)$notebook['id'];
         
         $this->params['note'] = $this->noteData;
         $this->params['breadcrumbs'] = $breadcrumbs;

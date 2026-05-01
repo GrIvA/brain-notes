@@ -32,15 +32,38 @@ class NoteModel
 
     /**
      * Find notes with filtering by tags, section, or notebook.
+     * Supports combined visibility (owner + public).
      */
     public function findFiltered(array $criteria): array
     {
         $where = [];
 
-        if (!empty($criteria['section_id'])) {
-            $where['section_id'] = $criteria['section_id'];
+        // 1. Core visibility condition
+        if (!empty($criteria['user_id'])) {
+            // Owner's notes OR public notes
+            $notebookIds = $this->db->select('notebooks', 'id', ['user_id' => (int)$criteria['user_id']]);
+            $sectionIds = !empty($notebookIds) ? $this->db->select('sections', 'id', ['notebook_id' => $notebookIds]) : [];
+            
+            // Subquery for public notes to avoid complex Medoo OR with bitwise
+            $publicNoteIds = $this->db->query("SELECT id FROM notes WHERE (attributes & " . self::ATTR_PUBLIC . ") = " . self::ATTR_PUBLIC)->fetchAll(\PDO::FETCH_COLUMN);
+
+            $where['OR'] = [
+                'notes.section_id' => !empty($sectionIds) ? $sectionIds : [-1],
+                'notes.id' => !empty($publicNoteIds) ? $publicNoteIds : [-1]
+            ];
+        } else {
+            // Guest: ONLY public notes
+            $publicNoteIds = $this->db->query("SELECT id FROM notes WHERE (attributes & " . self::ATTR_PUBLIC . ") = " . self::ATTR_PUBLIC)->fetchAll(\PDO::FETCH_COLUMN);
+            $where['notes.id'] = !empty($publicNoteIds) ? $publicNoteIds : [-1];
         }
 
+        // 2. Section filtering (narrow down visibility)
+        if (!empty($criteria['section_id'])) {
+            // If section is provided, it must be within the visibility scope
+            $where['notes.section_id'] = $criteria['section_id'];
+        }
+
+        // 3. Tag filtering
         if (!empty($criteria['tag_ids'])) {
             $tagIds = array_map('intval', (array)$criteria['tag_ids']);
             $total = count($tagIds);
@@ -56,19 +79,24 @@ class NoteModel
             if (empty($noteIds)) {
                 return [];
             }
-            $where['id'] = $noteIds;
+            $where['notes.id'] = $noteIds;
         }
 
-        if (!empty($criteria['user_id'])) {
-            // Ensure notes belong to the user via notebook
-            $notebookIds = $this->db->select('notebooks', 'id', ['user_id' => $criteria['user_id']]);
-            $sectionIds = $this->db->select('sections', 'id', ['notebook_id' => $notebookIds]);
-            $where['section_id'] = $sectionIds;
-        }
+        $where['ORDER'] = ['notes.created_at' => 'DESC'];
 
-        $where['ORDER'] = ['created_at' => 'DESC'];
-
-        return $this->db->select($this->table, '*', $where);
+        return $this->db->select($this->table, [
+            "[>]sections" => ["section_id" => "id"],
+            "[>]notebooks" => ["sections.notebook_id" => "id"]
+        ], [
+            "notes.id",
+            "notes.section_id",
+            "notes.title",
+            "notes.content",
+            "notes.attributes",
+            "notes.created_at",
+            "notes.updated_at",
+            "notebooks.user_id"
+        ], $where);
     }
 
     public function create(array $data): int|string|null

@@ -47,7 +47,6 @@
     "catfan/medoo": "dev-master",
     "nyholm/psr7": "^1.5",
     "nyholm/psr7-server": "^1.1",
-    "samuelgfeller/slim-error-renderer": "^1",
     "svyatov/curlwrapper": "~1.3",
     "fenom/fenom": "^3",
     "erusev/parsedown": "^1.7",

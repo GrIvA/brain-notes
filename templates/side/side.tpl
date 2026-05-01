@@ -12,7 +12,7 @@
                 <strong>Вітаємо, {$user.name}!</strong>
             </div>
 
-            <div class="side-notebook-selector" x-data="sidebarTree()" x-init="initTree()">
+            <div class="side-notebook-selector" x-data="sidebarTree({$common.active_notebook_id ?: 0})" x-init="initTree()">
                     <select id="notebook-select" x-model="activeNotebookId" @change="loadTree()">
                         <template x-for="nb in notebooks" :key="nb.id">
                             <option :value="nb.id" x-text="nb.title" :selected="nb.id == activeNotebookId"></option>
@@ -44,5 +44,11 @@
                 📧 <a href="mailto:info@example.com">info@example.com</a>
             </small>
         </section>
+        
+        {if $common.all_tags}
+            <section class="sidebar-tags">
+                {include 'components/tag_block.tpl' mode='filter' tags=$common.all_tags}
+            </section>
+        {/if}
     </nav>
 </aside>

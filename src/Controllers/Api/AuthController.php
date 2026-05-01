@@ -51,10 +51,10 @@ class AuthController extends AbstractController
         $res = $res->withHeader('Set-Cookie', $this->authService->getCookieHeader($token));
 
         if (isset($_SERVER['HTTP_HX_REQUEST'])) {
-            return $res->withHeader('HX-Redirect', '/')->withStatus(200);
+            return \App\Responder\RedirectHandler::hxRedirect($res, '/');
         }
 
-        return $res->withHeader('Location', '/')->withStatus(302);
+        return \App\Responder\RedirectHandler::redirectToUrl($res, '/');
     }
 
     public function register(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
@@ -92,10 +92,10 @@ class AuthController extends AbstractController
         $res = $res->withHeader('Set-Cookie', $this->authService->getCookieHeader($token));
 
         if (isset($_SERVER['HTTP_HX_REQUEST'])) {
-            return $res->withHeader('HX-Redirect', '/')->withStatus(200);
+            return \App\Responder\RedirectHandler::hxRedirect($res, '/');
         }
 
-        return $res->withHeader('Location', '/')->withStatus(302);
+        return \App\Responder\RedirectHandler::redirectToUrl($res, '/');
     }
 
     public function logout(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
@@ -110,10 +110,10 @@ class AuthController extends AbstractController
         $res = $res->withHeader('Set-Cookie', 'auth_token=; Path=/; HttpOnly; Max-Age=0');
 
         if ($req->hasHeader('HX-Request')) {
-            return $res->withHeader('HX-Redirect', '/')->withStatus(200);
+            return \App\Responder\RedirectHandler::hxRedirect($res, '/');
         }
 
-        return $res->withHeader('Location', '/')->withStatus(302);
+        return \App\Responder\RedirectHandler::redirectToUrl($res, '/');
     }
 
     private function errorResponse(ResponseInterface $res, string $message): ResponseInterface

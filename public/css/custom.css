@@ -104,6 +104,8 @@ ul li .lang-switcher summary { padding: 0 7px; }
 }
 
 #section-tree {
+    font-size: .8rem;
+    overflow-x: hidden;
     margin-bottom: 1rem;
     padding: 0 0.5rem;
     background-color: transparent;

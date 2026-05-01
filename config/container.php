@@ -7,8 +7,6 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Log\LoggerInterface;
-use SlimErrorRenderer\Middleware\ExceptionHandlingMiddleware;
-use SlimErrorRenderer\Middleware\NonFatalErrorHandlingMiddleware;
 
 use Medoo\Medoo;
 use Analog\Logger;
@@ -154,29 +152,20 @@ return [
         return $logger;
     },
 
-    // Error handling: https://samuel-gfeller.ch/docs/Error-Handling
-    ExceptionHandlingMiddleware::class => function (ContainerInterface $container) {
+    // Error handling
+    \App\Middleware\ExceptionHandlingMiddleware::class => function (ContainerInterface $container) {
         $settings = $container->get('settings');
 
-        return new ExceptionHandlingMiddleware(
+        return new \App\Middleware\ExceptionHandlingMiddleware(
+            $container,
             $container->get(ResponseFactoryInterface::class),
             $settings['error']['log_errors'] ? $container->get(LoggerInterface::class) : null,
-            $settings['error']['display_error_details'],
-            $settings['public']['main_contact_email'] ?? null
-        );
-    },
-
-    // Add error middleware for notices and warnings
-    NonFatalErrorHandlingMiddleware::class => function (ContainerInterface $container) {
-        $settings = $container->get('settings')['error'];
-
-        return new NonFatalErrorHandlingMiddleware(
-            $settings['display_error_details'],
-            $settings['log_errors'] ? $container->get(LoggerInterface::class) : null,
+            $settings['error']['display_error_details']
         );
     },
 
     'Homepage' => function($c) { return new Homepage($c); },
+    'ErrorPage' => function($c) { return new \App\Controllers\Pages\ErrorPage($c); },
 
     Parsedown::class => function (ContainerInterface $container) {
         return new Parsedown();
@@ -239,12 +228,14 @@ return [
             $lang = $container->get(LanguageService::class);
             return $lang->translate($var);
         });
+        $fenom->addModifier('attr', function ($var, $attr) {
+            return (int)$var & (int)$attr;
+        });
         $fenom->addModifier('getPageURL', function ($route) use ($container) {
             $ls = $container->get(LanguageService::class);
             $lang_current_id = $ls->getCurrentLanguageID();
             $alias = $container->get(PageAliasModel::class)->findByRouteName($route, $lang_current_id);
             if (is_null($alias)) {
-                //$log = $c['log'];
                 $container->get(LoggerInterface::class)->warning('No page alias for route: '.$route);
             }
 
@@ -254,11 +245,13 @@ return [
             if (empty($text)) {
                 return '';
             }
+            // Normalize line endings: replace Unicode separators with standard newlines
+            $text = str_replace(["\u{2028}", "\u{2029}"], "\n", $text);
+
             $parser = $container->get(Parsedown::class);
 
             return $parser->setMarkupEscaped(false)->text($text);
         });
-
         $fenom->addBlockFunction('doNotShow', function (array $params, $content) {
             return '';
         });

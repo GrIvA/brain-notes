@@ -15,7 +15,7 @@ class LoginPage extends SiteController
         parent::collectHandleParams($req, $args);
         
         if ($req->getAttribute('user')) {
-            return $res->withHeader('Location', '/')->withStatus(302);
+            return \App\Responder\RedirectHandler::redirectToUrl($res, '/');
         }
 
         return $this->resultHandling([], $res);

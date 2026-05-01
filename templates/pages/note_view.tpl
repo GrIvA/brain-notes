@@ -33,6 +33,9 @@
                         </div>
                         <h5>Додати тег</h5>
                         {include 'components/tag_autocomplete.tpl'}
+                        <hr>
+                        <h5>Керування тегами</h5>
+                        {include 'components/tag_block.tpl' mode='manage' tags=$tags}
                     </div>
                 </div>
             </details>
@@ -43,13 +46,25 @@
         {$note.content|markdown}
     </section>
 
-    {include 'components/tag_block.tpl' mode='manage' tags=$tags}
-
     <footer>
         <div class="note-meta">
+            {if $tags}
+                <div class="note-tags-footer" style="margin-bottom: 1rem;">
+                    {include 'components/tag_block.tpl' mode='view' tags=$tags}
+                </div>
+            {/if}
             <div class="stats-footer" style="display: flex; justify-content: space-between; align-items: center;">
                 <small>
                     <i class="far fa-calendar-alt"></i> {$note.created_at|date_format:"%d.%m.%Y %H:%M"}
+                    {if $note.attributes|attr:1}
+                        <span style="margin-left: 1rem; color: var(--pico-primary);">
+                            <i class="fa-solid fa-globe"></i> Публічна
+                        </span>
+                    {else}
+                        <span style="margin-left: 1rem; color: var(--pico-muted-color);">
+                            <i class="fa-solid fa-lock"></i> Приватна
+                        </span>
+                    {/if}
                 </small>
                 <small>
                     <i class="far fa-eye"></i> 0

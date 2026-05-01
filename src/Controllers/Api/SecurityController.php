@@ -28,11 +28,11 @@ class SecurityController extends AbstractController
     public function listIps(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
         if (!$this->isAdmin($req)) {
-            return $this->jsonResponse($res, ['error' => 'Forbidden'], 403);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Forbidden'], 403);
         }
 
         $ips = $this->ipModel->getAllTrackedIps();
-        return $this->jsonResponse($res, $ips);
+        return \App\Responder\JsonHandler::response($res, $ips);
     }
 
     /**
@@ -43,7 +43,7 @@ class SecurityController extends AbstractController
         /** @var User $admin */
         $admin = $req->getAttribute('user');
         if (!$this->isAdmin($req)) {
-            return $this->jsonResponse($res, ['error' => 'Forbidden'], 403);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Forbidden'], 403);
         }
 
         $ip = $args['ip'] ?? '';
@@ -57,12 +57,12 @@ class SecurityController extends AbstractController
         ];
 
         if (!isset($statusMap[$status])) {
-            return $this->jsonResponse($res, ['error' => 'Invalid status. Use: normal, allow, disabled'], 400);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Invalid status. Use: normal, allow, disabled'], 400);
         }
 
         $this->ipModel->setStatus($ip, $statusMap[$status], $admin->getId());
 
-        return $this->jsonResponse($res, ['message' => "Status for IP $ip updated to $status"]);
+        return \App\Responder\JsonHandler::response($res, ['message' => "Status for IP $ip updated to $status"]);
     }
 
     private function isAdmin(ServerRequestInterface $req): bool
@@ -70,11 +70,5 @@ class SecurityController extends AbstractController
         /** @var User $user */
         $user = $req->getAttribute('user');
         return $user && $user->hasRole(UserRole::ADMIN);
-    }
-
-    private function jsonResponse(ResponseInterface $res, $data, int $status = 200): ResponseInterface
-    {
-        $res->getBody()->write(json_encode($data, JSON_UNESCAPED_UNICODE));
-        return $res->withHeader('Content-Type', 'application/json')->withStatus($status);
     }
 }

@@ -31,11 +31,11 @@ class SectionController extends AbstractController
         $notebookId = (int)($args['id'] ?? 0);
 
         if (!$this->checkNotebookOwnership($notebookId, $user->getId())) {
-            return $this->jsonResponse($res, ['error' => 'Notebook not found'], 404);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Notebook not found'], 404);
         }
 
         $tree = $this->sectionModel->getTree($notebookId);
-        return $this->jsonResponse($res, $tree);
+        return \App\Responder\JsonHandler::response($res, $tree);
     }
 
     public function store(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
@@ -49,11 +49,11 @@ class SectionController extends AbstractController
         $title = $data['title'] ?? '';
 
         if (!$this->checkNotebookOwnership($notebookId, $user->getId())) {
-            return $this->jsonResponse($res, ['error' => 'Notebook not found or access denied'], 404);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Notebook not found or access denied'], 404);
         }
 
         if ($parentId !== null && !$this->sectionModel->findById($parentId)) {
-            return $this->jsonResponse($res, ['error' => 'Parent section not found'], 400);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Parent section not found'], 400);
         }
 
         $id = $this->sectionModel->create([
@@ -63,7 +63,7 @@ class SectionController extends AbstractController
             'sort_order' => (int)($data['sort_order'] ?? 0)
         ]);
 
-        return $this->jsonResponse($res, ['id' => $id, 'message' => 'Section created'], 201);
+        return \App\Responder\JsonHandler::response($res, ['id' => $id, 'message' => 'Section created'], 201);
     }
 
     public function move(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
@@ -76,14 +76,14 @@ class SectionController extends AbstractController
 
         $section = $this->sectionModel->findById($id);
         if (!$section || !$this->checkNotebookOwnership((int)$section['notebook_id'], $user->getId())) {
-            return $this->jsonResponse($res, ['error' => 'Section not found'], 404);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Section not found'], 404);
         }
 
         if ($this->sectionModel->move($id, $newParentId)) {
-            return $this->jsonResponse($res, ['message' => 'Section moved']);
+            return \App\Responder\JsonHandler::response($res, ['message' => 'Section moved']);
         }
 
-        return $this->jsonResponse($res, ['error' => 'Invalid move operation (possible cycle or self-reference)'], 400);
+        return \App\Responder\JsonHandler::response($res, ['error' => 'Invalid move operation (possible cycle or self-reference)'], 400);
     }
 
     public function delete(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
@@ -94,22 +94,16 @@ class SectionController extends AbstractController
 
         $section = $this->sectionModel->findById($id);
         if (!$section || !$this->checkNotebookOwnership((int)$section['notebook_id'], $user->getId())) {
-            return $this->jsonResponse($res, ['error' => 'Section not found'], 404);
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Section not found'], 404);
         }
 
         $this->sectionModel->delete($id);
-        return $this->jsonResponse($res, ['message' => 'Section deleted']);
+        return \App\Responder\JsonHandler::response($res, ['message' => 'Section deleted']);
     }
 
     private function checkNotebookOwnership(int $notebookId, int $userId): bool
     {
         $notebook = $this->notebookModel->findById($notebookId);
         return $notebook && $notebook['user_id'] === $userId;
-    }
-
-    private function jsonResponse(ResponseInterface $res, $data, int $status = 200): ResponseInterface
-    {
-        $res->getBody()->write(json_encode($data, JSON_UNESCAPED_UNICODE));
-        return $res->withHeader('Content-Type', 'application/json')->withStatus($status);
     }
 }

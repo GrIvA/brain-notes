@@ -66,18 +66,14 @@ abstract class SiteController extends AbstractController
         }
          */
         if (isset($data['redirect_url'])) {
-            $utility = $this->container['utility']; /* @var $utility Utility */
-
             // need redirect to other page
-            $url = $utility->getAliasByPageID($data['redirect_url'])
+            $url = getAliasByPageID($data['redirect_url'])
                 . (isset($data['redirect_postfix']) ? '/'.$data['redirect_postfix'] : '');
             $http_code = !empty($data['http_code']) && is_numeric($data['http_code'])
-                ? $data['http_code']
+                ? (int)$data['http_code']
                 : 307;
-            return $res
-                ->withHeader('Content-Type', 'application/x-www-form-urlencoded')
-                ->withHeader('Location', $url)
-                ->withStatus($http_code);
+            
+            return \App\Responder\RedirectHandler::redirectToUrl($res, $url, [], $http_code);
         }
 
         // Render view
@@ -96,11 +92,18 @@ abstract class SiteController extends AbstractController
     protected function getCommonParams(): void
     {
         $lang = $this->container->get(LanguageService::class); /* @var $lang LanguageService */
+        $tagModel = $this->container->get(\App\Models\TagModel::class);
+        
         $this->params['common'] = [
             'languages' => $this->getLanguageSelectorInfo(),
             'language_id' => $lang->getCurrentLanguageID(),
             'page_id' => $this->getPageID(),
             'title_of_page' => '',
+            'theme' => $_COOKIE['pico-theme'] ?? 'light',
+            'active_notebook_id' => (int)($_COOKIE['active_notebook_id'] ?? 0),
+            'all_tags' => $this->user 
+                ? $tagModel->getCombinedTags((int)$this->user->getId()) 
+                : $tagModel->getPublicTags(),
         ];
 
         $this->params['user'] = $this->user ? $this->user->toArray() : null;

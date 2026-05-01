@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" data-theme="{$common.theme}">
     <head>
         <title>{($common.title_of_page ?: 'Brain notes')|translate}</title>
         <meta charset="utf-8">

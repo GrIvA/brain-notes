@@ -12,12 +12,14 @@
     const overlay = document.getElementById('sidebar-overlay');
 
     const toggle = () => {
-        sidebar.classList.toggle('open');
-        overlay.classList.toggle('open');
+        if (sidebar && overlay) {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
     };
 
-    btn.onclick = toggle;
-    overlay.onclick = toggle;
+    if (btn) btn.onclick = toggle;
+    if (overlay) overlay.onclick = toggle;
 
     // Перемикач тем (Dark/Light)
     const themeBtn = document.getElementById('theme-switcher');
@@ -28,13 +30,17 @@
     const moonIcon = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
     const sunIcon = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
 
-    // Визначення поточної теми
-    let currentTheme = localStorage.getItem('pico-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    // Визначення поточної теми (пріоритет темі з сервера)
+    let currentTheme = '{$common.theme}';
     
-    const updateUI = (theme) => {
-        root.setAttribute('data-theme', theme);
+    const updateUI = (theme, initial = false) => {
+        if (!initial) {
+            root.setAttribute('data-theme', theme);
+            // Зберігаємо в Cookie на 1 рік
+            document.cookie = `pico-theme=${theme}; path=/; max-age=${60*60*24*365}; SameSite=Lax`;
+        }
+        
         themeIcon.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
-        localStorage.setItem('pico-theme', theme);
         
         // Оновлення теми jsTree
         if (jstreeThemeLink) {
@@ -46,7 +52,7 @@
         window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme } }));
     };
 
-    updateUI(currentTheme);
+    updateUI(currentTheme, true);
 
     themeBtn.onclick = () => {
         currentTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -54,10 +60,10 @@
     };
 
     // Alpine.js Sidebar Component
-    function sidebarTree() {
+    function sidebarTree(initialNotebookId = 0) {
         return {
             notebooks: [],
-            activeNotebookId: null,
+            activeNotebookId: initialNotebookId,
             
             async initTree() {
                 // Слухаємо зміну теми
@@ -74,15 +80,24 @@
                     if (response.ok) {
                         this.notebooks = await response.json();
                         
-                        // Шукаємо дефолтний зошит (attributes & 1)
-                        const defaultNb = this.notebooks.find(nb => (parseInt(nb.attributes) & 1) === 1);
-                        if (defaultNb) {
-                            this.activeNotebookId = defaultNb.id;
-                        } else if (this.notebooks.length > 0) {
-                            this.activeNotebookId = this.notebooks[0].id;
+                        // Перевіряємо, чи має користувач доступ до поточного activeNotebookId
+                        const hasAccess = this.notebooks.some(nb => nb.id == this.activeNotebookId);
+
+                        // Якщо ID ще не встановлено або немає доступу, шукаємо дефолтний
+                        if (!hasAccess || !this.activeNotebookId || this.activeNotebookId === 0) {
+                            const defaultNb = this.notebooks.find(nb => (parseInt(nb.attributes) & 1) === 1);
+                            if (defaultNb) {
+                                this.activeNotebookId = defaultNb.id;
+                            } else if (this.notebooks.length > 0) {
+                                this.activeNotebookId = this.notebooks[0].id;
+                            } else {
+                                this.activeNotebookId = 0;
+                            }
                         }
 
-                        if (this.activeNotebookId) {
+                        if (this.activeNotebookId && this.activeNotebookId !== 0) {
+                            // Зберігаємо в Cookie та завантажуємо дерево
+                            this.saveActiveNotebook();
                             this.loadTree();
                         }
                     }
@@ -91,8 +106,15 @@
                 }
             },
 
+            saveActiveNotebook() {
+                if (this.activeNotebookId) {
+                    document.cookie = `active_notebook_id=${this.activeNotebookId}; path=/; max-age=${60*60*24*365}; SameSite=Lax`;
+                }
+            },
+
             async loadTree() {
                 if (!this.activeNotebookId) return;
+                this.saveActiveNotebook();
                 
                 try {
                     const response = await fetch(`/api/v1/notebooks/${this.activeNotebookId}/tree`);

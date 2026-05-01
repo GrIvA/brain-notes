@@ -31,10 +31,19 @@ class Homepage extends SiteController
         $tagModel = $this->container->get(\App\Models\TagModel::class);
         $noteModel = $this->container->get(\App\Models\NoteModel::class);
 
-        $userId = $this->user ? $this->user->getId() : null;
-        
-        $this->params['tags'] = $userId ? $tagModel->getAllUserTags($userId) : [];
-        $this->params['notes'] = $noteModel->findFiltered(['user_id' => $userId]);
+        $userId = $this->user ? (int)$this->user->getId() : null;
+        $notes = $noteModel->findFiltered(['user_id' => $userId]);
+
+        // Use consistent tag loading logic
+        $this->params['tags'] = $userId 
+            ? $tagModel->getCombinedTags($userId) 
+            : $tagModel->getPublicTags();
+
+        // Attach tags to each note
+        foreach ($notes as &$note) {
+            $note['tags'] = $tagModel->getTagsByNoteId((int)$note['id']);
+        }
+        $this->params['notes'] = $notes;
 
         $result = ['status' => SiteController::HANDLING_STATUS_OK];
         return $result;
