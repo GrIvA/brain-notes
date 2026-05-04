@@ -81,10 +81,34 @@ ul li .lang-switcher {
 }
 ul li .lang-switcher summary { padding: 0 7px; }
 
+/***********/
+/*  TAGs   */
+/***********/
+.tags-cloud span {
+    cursor: pointer;
+    color: var(--pico-form-element-invalid-border-color);
+    font-size: 0.8rem;
+
+    display: inline-flex; 
+    align-items: center; 
+    margin: 0.1rem; 
+    border: 1px solid var(--pico-muted-border-color); 
+    border-radius: var(--pico-border-radius); 
+    padding: 0.1rem 0.2rem;
+}
+.tags-cloud button {
+    margin-right: 0.1rem; 
+    margin-bottom: 0.1rem; 
+    padding: 0.1rem 0.4rem; 
+    font-size: 0.7rem;
+}
+
+.tags-cloud span:hover,
+.tags-cloud button:hover {
+    background-color: #eee;
+}
 /***********
- *         *
  * Sidebar *
- *         *
  ***********/
 
 #sidebar.sidebar-logo {

@@ -175,7 +175,8 @@ class NoteController extends AbstractController
         }
 
         $tmpl = $this->container->get('tmpl');
-        $template = $queryParams['view'] === 'modal' ? 'components/modal_note_list.tpl' : 'components/note_list.tpl';
+        $view = $queryParams['view'] ?? '';
+        $template = $view === 'modal' ? 'components/modal_note_list.tpl' : 'components/note_list.tpl';
         
         $html = $tmpl->fetch($template, [
             'notes' => $notes,

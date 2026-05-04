@@ -10,7 +10,7 @@
             }
             
             let queryParams = this.activeTagIds.map(id => 'tag_ids[]=' + id).join('&');
-            let isHome = '{$common.page_id}' === '1';
+            let isHome = window.BN_PAGE_ID === '1';
             
             if (isHome) {
                 // На головній — оновлюємо існуючий список
@@ -38,18 +38,16 @@
                     class="tag-badge" 
                     :class="activeTagIds.includes({$tag.id}) ? 'contrast' : 'outline'"
                     @click="toggleTag({$tag.id})"
-                    style="margin-right: 0.5rem; margin-bottom: 0.5rem; padding: 0.2rem 0.6rem; font-size: 0.85rem;"
                 >
                     {$tag.name}
                 </button>
             {/foreach}
         {elseif $mode == 'manage'}
             {foreach $tags as $tag}
-                <span class="tag-badge-manage" id="note-tag-{$tag.id}" style="display: inline-flex; align-items: center; margin-right: 0.5rem; margin-bottom: 0.5rem; border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius); padding: 0.2rem 0.5rem;">
+                <span class="tag-badge-manage" id="note-tag-{$tag.id}>
                     <small>{$tag.name}</small>
                     {if $canEdit}
                         <i class="fas fa-times" 
-                           style="margin-left: 0.5rem; cursor: pointer; color: var(--pico-form-element-invalid-border-color);"
                            hx-delete="/api/v1/notes/{$note.id}/tags/{$tag.id}"
                            hx-target="#note-tag-{$tag.id}"
                            hx-swap="outerHTML"
@@ -60,7 +58,7 @@
             {/foreach}
         {elseif $mode == 'view'}
             {foreach $tags as $tag}
-                <span class="tag-badge-view" style="display: inline-flex; align-items: center; margin-right: 0.5rem; margin-bottom: 0.5rem; border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius); padding: 0.2rem 0.5rem; background-color: var(--pico-code-background-color);">
+                <span class="tag-badge-view">
                     <small>{$tag.name}</small>
                 </span>
             {/foreach}

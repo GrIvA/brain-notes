@@ -16,6 +16,11 @@
         <script src="/js/htmx.min.js"></script>
         <script src="/js/alpine.min.js" defer></script>
 
+        <script>
+            window.BN_PAGE_ID = '{$common.page_id}';
+            window.BN_THEME = '{$common.theme}';
+        </script>
+
         <!--<script src="/js/tools/ic.min.js"></script>-->
         <!--<script src="/js/tools/ic.js"></script>-->
         {block 'js'}{/block}
@@ -66,6 +71,9 @@
 
         <!-- Оверлей для мобільного -->
         <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- Контейнер для модальних вікон -->
+        <div id="modal-container"></div>
 
         <!-- Common scripts -->
         {insert 'scripts.tpl'}

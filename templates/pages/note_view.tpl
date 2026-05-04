@@ -73,8 +73,6 @@
         </div>
     </footer>
 </article>
-
-<div id="modal-container"></div>
 {/block}
 
 {block 'css'}
