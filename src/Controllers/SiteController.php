@@ -59,12 +59,6 @@ abstract class SiteController extends AbstractController
     protected function resultHandling(array $data, ResponseInterface $res): ResponseInterface
     {
         /*
-        if ($this->user instanceof User) {
-            $token = $this->user->getToken();
-            $res = $res->withHeader('usc', $token);
-            setcookie('usc', $token, time() + 60*60, '/');
-        }
-         */
         if (isset($data['redirect_url'])) {
             // need redirect to other page
             $url = getAliasByPageID($data['redirect_url'])
@@ -72,9 +66,10 @@ abstract class SiteController extends AbstractController
             $http_code = !empty($data['http_code']) && is_numeric($data['http_code'])
                 ? (int)$data['http_code']
                 : 307;
-            
+
             return \App\Responder\RedirectHandler::redirectToUrl($res, $url, [], $http_code);
         }
+         */
 
         // Render view
         if (!empty($_COOKIE['dbg']) && $_COOKIE['dbg'] == 'wd308') {
@@ -93,16 +88,17 @@ abstract class SiteController extends AbstractController
     {
         $lang = $this->container->get(LanguageService::class); /* @var $lang LanguageService */
         $tagModel = $this->container->get(\App\Models\TagModel::class);
-        
+
         $this->params['common'] = [
             'languages' => $this->getLanguageSelectorInfo(),
             'language_id' => $lang->getCurrentLanguageID(),
             'page_id' => $this->getPageID(),
             'title_of_page' => '',
+            'deployment' => $this->container->get('settings')['deployment'],
             'theme' => $_COOKIE['pico-theme'] ?? 'light',
             'active_notebook_id' => (int)($_COOKIE['active_notebook_id'] ?? 0),
-            'all_tags' => $this->user 
-                ? $tagModel->getCombinedTags((int)$this->user->getId()) 
+            'all_tags' => $this->user
+                ? $tagModel->getCombinedTags((int)$this->user->getId())
                 : $tagModel->getPublicTags(),
         ];
 

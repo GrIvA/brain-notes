@@ -24,26 +24,28 @@
         {/if}
         <ul>
             <li><strong>Навігація</strong></li>
-            <li><a href="#">🏠 Головна</a></li>
-            <li><a href="#">📊 Дашборд</a></li>
+            <li><a href="/{'home'|getPageURL}">🏠 Головна</a></li>
+            <li><a href="#">📊 Статистика</a></li>
             <li><a href="#">⚙️ Налаштування</a></li>
         </ul>
         <hr>
         <section>
             <small>
-                <strong>Службова інфо:</strong><br>
-                Статус: <mark>Online</mark><br>
-                Версія: 1.2.4
+                <strong>Службова інфо:</strong><br />
+                Статус: <mark>Online</mark><br />
+                Версія: {$common.deployment.version}<br />
+                IP: {$.server.REMOTE_ADDR}
             </small>
         </section>
         <hr>
         <section>
             <small>
                 <strong>Контакти:</strong><br>
-                📞 +380 44 000 00 00<br>
-                📧 <a href="mailto:info@example.com">info@example.com</a>
+                <i class="fa-brands fa-mastodon"></i>&nbsp; {$common.deployment.mastodon}<br>
+                <i class="fa-regular fa-envelope"></i>&nbsp; <a href="mailto:{$common.deployment.email}">{$common.deployment.email}</a>
             </small>
         </section>
+        <hr>
         
         {if $common.all_tags}
             <section class="sidebar-tags">

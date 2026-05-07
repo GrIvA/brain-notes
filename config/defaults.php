@@ -22,15 +22,9 @@ $settings = [];
 
 
 $settings['deployment'] = [
-    // Version string or null.
-    // If JsImportCacheBuster is enabled, `null` removes all query param versions from js imports
-    'version' => '1.0.1',
-    // When true, JsImportCacheBuster is enabled and goes through all js files and changes the version number
-    // from the imports. Should be disabled in env.prod.php.
-    // https://samuel-gfeller.ch/docs/Template-Rendering#js-import-cache-busting
-    'update_js_imports_version' => false,
-    // Asset path required by the JsImportCacheBuster
-    'asset_path' => ROOTDIR . '/public/assets',
+    'version'  => 'beta 1.0.1',
+    'email'    => 'bn@griva.org.ua',
+    'mastodon' => '@griva99@mastodon.social',
 ];
 
 // Error handler: https://github.com/samuelgfeller/slim-error-renderer
