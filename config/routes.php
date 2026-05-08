@@ -70,7 +70,11 @@ return function (App $app) {
         // Notes
         $group->get('/notes/search-by-tags', TagController::class . ':search');
         $group->get('/notes/list',               NoteController::class . ':listFiltered');
+        $group->get('/notes/create-ui',          NoteController::class . ':createUI');
+        $group->get('/notes/move-ui/{id}',       NoteController::class . ':moveUI');
         $group->patch('/notes/move',             NoteController::class . ':move');
+        $group->get('/notes/decrypt-ui/{id}',    NoteController::class . ':decryptUI');
+        $group->post('/notes/decrypt/{id}',      NoteController::class . ':decrypt');
         $group->post('/notes',                   NoteController::class . ':store');
         $group->get('/notes/{id}',               NoteController::class . ':show');
         $group->put('/notes/{id}',               NoteController::class . ':update');

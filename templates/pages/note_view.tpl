@@ -20,30 +20,80 @@
                     <span class="panel-label">Панель керування</span>
                 </summary>
                 
-                <div class="panel-content grid">
-                    <div>
-                        <h5>Статистика</h5>
-                        <small>Переглядів: 0 (плейсхолдер)</small>
-                    </div>
-                    <div>
-                        <h5>Дії</h5>
-                        <div class="button-group" style="margin-bottom: 1rem;">
-                            <a href="#" role="button" class="secondary outline sm">Редагувати</a>
-                            <button class="secondary outline sm" hx-get="/api/v1/sections/move-ui/{$note.id}" hx-target="#modal-container">Перенести</button>
+                <div class="panel-content">
+                    <h5>Основні параметри</h5>
+                    <div class="grid">
+                        <div>
+                            <label for="edit-title">Заголовок</label>
+                            <div role="group">
+                                <input type="text" id="edit-title" name="title" value="{$note.title}"
+                                       hx-put="/api/v1/notes/{$note.id}"
+                                       hx-trigger="change"
+                                       hx-target=".note-title"
+                                       hx-swap="innerHTML"
+                                       hx-vals='js:{ title: document.getElementById("edit-title").value }'>
+
+                             <button class="secondary outline sm" hx-get="/api/v1/notes/move-ui/{$note.id}" hx-target="#modal-container">Перенести</button>
+                             <button class="outline sm" style="color: var(--pico-form-element-invalid-border-color); border-color: var(--pico-form-element-invalid-border-color);"
+                                     hx-delete="/api/v1/notes/{$note.id}"
+                                     hx-confirm="Ви впевнені, що хочете видалити цю нотатку?">
+                                 Видалити
+                             </button>
+                            </div>
                         </div>
-                        <h5>Додати тег</h5>
-                        {include 'components/tag_autocomplete.tpl'}
-                        <hr>
-                        <h5>Керування тегами</h5>
-                        {include 'components/tag_block.tpl' mode='manage' tags=$tags}
                     </div>
+                    <hr>
+                    <div class="grid">
+                        <div>
+                            <h5>Дії з тегами</h5>
+                            {include 'components/tag_autocomplete.tpl'}
+                        </div>
+                        <div>
+                            <h5>Керування тегами</h5>
+                            {include 'components/tag_block.tpl' mode='manage' tags=$tags}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-content">
+                    <h5>Шифрування</h5>
+                    <form hx-put="/api/v1/notes/{$note.id}" hx-swap="none" hx-on::after-request="if(event.detail.successful) { alert('Дані шифрування оновлено'); location.reload(); }">
+                        <div class="grid">
+                            {if $isEncrypted}
+                                <label for="old_password">
+                                    Поточний пароль
+                                    <input type="password" id="old_password" name="old_password" required>
+                                </label>
+                            {/if}
+                            <label for="new_password">
+                                {if $isEncrypted}Новий пароль (порожньо — зняти){else}Встановити пароль{/if}
+                                <input type="password" id="new_password" name="password" {if !$isEncrypted}required{/if}>
+                            </label>
+                        </div>
+                        <button type="submit" class="sm">{if $isEncrypted}Оновити / Зняти{else}Зашифрувати{/if}</button>
+                    </form>
                 </div>
             </details>
         {/if}
     </header>
 
-    <section class="note-content article-body">
-        {$note.content|markdown}
+    <section class="note-content article-body" id="note-content-area">
+        {if $isEncrypted}
+            <div style="text-align: center; padding: 2rem;">
+                <i class="fa-solid fa-lock" style="font-size: 3rem; color: var(--pico-muted-color); margin-bottom: 1rem;"></i>
+                <p>Ця нотатка зашифрована.</p>
+                <button class="contrast" 
+                        hx-get="/api/v1/notes/decrypt-ui/{$note.id}" 
+                        hx-target="#modal-container">
+                    Ввести пароль
+                </button>
+            </div>
+            
+            {* Автоматично відкриваємо модалку при завантаженні сторінки *}
+            <div hx-get="/api/v1/notes/decrypt-ui/{$note.id}" hx-trigger="load" hx-target="#modal-container"></div>
+        {else}
+            {$note.content|markdown}
+        {/if}
     </section>
 
     <footer>

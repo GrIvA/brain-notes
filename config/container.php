@@ -114,6 +114,10 @@ return [
         return new LanguageService($container);
     },
 
+    \App\Services\EncryptionService::class => function (ContainerInterface $container) {
+        return new \App\Services\EncryptionService();
+    },
+
     LanguageMiddleware::class => function (ContainerInterface $container) {
         return new LanguageMiddleware(
             $container->get(LanguageService::class),

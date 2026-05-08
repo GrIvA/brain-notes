@@ -37,6 +37,7 @@ class NotePage extends SiteController
         
         $isOwner = $this->user instanceof \App\Entities\User && (int)$this->user->getId() === (int)$notebook['user_id'];
         $isPublic = ((int)$this->noteData['attributes'] & NoteModel::ATTR_PUBLIC) === NoteModel::ATTR_PUBLIC;
+        $isEncrypted = ((int)$this->noteData['attributes'] & NoteModel::ATTR_ENCRYPT) === NoteModel::ATTR_ENCRYPT;
 
         if (!$isOwner && !$isPublic) {
             if (!$this->user) {
@@ -44,6 +45,12 @@ class NotePage extends SiteController
                 return \App\Responder\RedirectHandler::redirectToRoute($response, 'login');
             }
             throw new \Slim\Exception\HttpForbiddenException($request, "У вас немає прав для перегляду цієї нотатки");
+        }
+
+        if ($isEncrypted) {
+            $this->params['isEncrypted'] = true;
+            $this->params['noteId'] = $noteId;
+            // Optionally, we could still prepare some metadata but not the content
         }
 
         $this->prepareNoteParams();
@@ -84,11 +91,17 @@ class NotePage extends SiteController
         // Sync active notebook in sidebar
         $this->params['common']['active_notebook_id'] = (int)$notebook['id'];
         
+        $isEncrypted = ((int)$this->noteData['attributes'] & NoteModel::ATTR_ENCRYPT) === NoteModel::ATTR_ENCRYPT;
+
         $this->params['note'] = $this->noteData;
+        if ($isEncrypted) {
+            $this->params['note']['content'] = '*** ЗАШИФРОВАНО ***';
+        }
         $this->params['breadcrumbs'] = $breadcrumbs;
         $this->params['tags'] = $tags;
         $this->params['allUserTags'] = $allUserTags;
         $this->params['canEdit'] = $canEdit;
+        $this->params['isEncrypted'] = $isEncrypted;
     }
 
     protected function getPageID(): int

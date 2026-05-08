@@ -3,7 +3,7 @@
         {foreach $notes as $note}
             <article class="note-item">
                 <header>
-                    <a href="/note/{$note.id}">
+                    <a href="/{'note'|getPageURL}/{$note.id}">
                         {if $user && $user.id == $note.user_id}
                             <i class="fa-solid fa-user" title="Ваша нотатка" style="color: var(--pico-secondary); margin-right: 0.3rem;"></i>
                         {elseif $note.attributes|attr:1}
@@ -11,6 +11,9 @@
                         {/if}
                         {if $note.attributes|attr:1}
                             <i class="fa-solid fa-globe" title="Доступна всім" style="color: var(--pico-primary); margin-right: 0.3rem;"></i>
+                        {/if}
+                        {if $note.attributes|attr:8}
+                            <i class="fa-solid fa-lock" title="Зашифрована" style="color: var(--pico-secondary); margin-right: 0.3rem;"></i>
                         {/if}
                         <strong>{$note.title}</strong>
                     </a>

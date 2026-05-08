@@ -3,7 +3,6 @@
         <a href="/{'home'|getPageURL}">
             <img src="/logo2.png" alt="Logo">
         </a>
-        <hr>
     </div>
 
     <nav>
@@ -12,16 +11,31 @@
                 <strong>Вітаємо, {$user.name}!</strong>
             </div>
 
+            <hr>
+
             <div class="side-notebook-selector" x-data="sidebarTree({$common.active_notebook_id ?: 0})" x-init="initTree()">
-                    <select id="notebook-select" x-model="activeNotebookId" @change="loadTree()">
-                        <template x-for="nb in notebooks" :key="nb.id">
-                            <option :value="nb.id" x-text="nb.title" :selected="nb.id == activeNotebookId"></option>
-                        </template>
-                    </select>
-                </div>
+                    <div class="grid" style="margin-bottom: 0.5rem; align-items: center;">
+                        <select id="notebook-select" x-model="activeNotebookId" @change="loadTree()">
+                            <template x-for="nb in notebooks" :key="nb.id">
+                                <option :value="nb.id" x-text="nb.title" :selected="nb.id == activeNotebookId"></option>
+                            </template>
+                        </select>
+                        <button class="outline secondary" 
+                                style="padding: 0.25rem 0.5rem; margin-bottom: 0;" 
+                                :disabled="!selectedSectionId"
+                                :title="selectedSectionId ? 'Додати нотатку' : 'Спочатку виберіть розділ у дереві'"
+                                hx-get="/api/v1/notes/create-ui"
+                                :hx-vals="JSON.stringify({ section_id: selectedSectionId })"
+                                hx-target="#modal-container">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                 <div id="section-tree"></div>
             </div>
         {/if}
+
+        <hr>
+
         <ul>
             <li><strong>Навігація</strong></li>
             <li><a href="/{'home'|getPageURL}">🏠 Головна</a></li>

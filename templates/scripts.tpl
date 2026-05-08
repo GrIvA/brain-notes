@@ -64,6 +64,7 @@
         return {
             notebooks: [],
             activeNotebookId: initialNotebookId,
+            selectedSectionId: null,
             
             async initTree() {
                 // Слухаємо зміну теми
@@ -114,6 +115,7 @@
 
             async loadTree() {
                 if (!this.activeNotebookId) return;
+                this.selectedSectionId = null;
                 this.saveActiveNotebook();
                 
                 try {
@@ -156,8 +158,12 @@
                     });
 
                     $tree.on('select_node.jstree', (e, data) => {
-                        // Тут буде логіка відкриття нотаток у розділі
-                        console.log('Selected section:', data.node.id);
+                        this.selectedSectionId = data.node.id;
+                        console.log('Selected section:', this.selectedSectionId);
+                        // Оновлюємо HTMX елементи, що залежать від цього ID
+                        this.$nextTick(() => {
+                            htmx.process(document.getElementById('sidebar'));
+                        });
                     });
                 }
             }
@@ -167,6 +173,10 @@
     // Закриття при кліку на лінки в мобільному меню
     sidebar.querySelectorAll('a').forEach(a => {
         a.onclick = () => { if(window.innerWidth < 768) toggle(); };
+    });
+
+    document.body.addEventListener('close-decrypt-modal', function() {
+        document.getElementById('decrypt-modal')?.remove();
     });
 {/ignore}
 </script>

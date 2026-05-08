@@ -32,16 +32,21 @@ class Homepage extends SiteController
         $noteModel = $this->container->get(\App\Models\NoteModel::class);
 
         $userId = $this->user ? (int)$this->user->getId() : null;
-        $notes = $noteModel->findFiltered(['user_id' => $userId]);
+        $notesData = $noteModel->findFiltered(['user_id' => $userId]);
+        $notes = [];
+        $registryModel = $this->container->get(\App\Models\RegistryModel::class);
 
         // Use consistent tag loading logic
         $this->params['tags'] = $userId 
             ? $tagModel->getCombinedTags($userId) 
             : $tagModel->getPublicTags();
 
-        // Attach tags to each note
-        foreach ($notes as &$note) {
+        // Attach tags to each note and hide encrypted content via Entity logic
+        foreach ($notesData as $data) {
+            $noteEntity = new \App\Entities\Note($data, $registryModel);
+            $note = $noteEntity->toArray();
             $note['tags'] = $tagModel->getTagsByNoteId((int)$note['id']);
+            $notes[] = $note;
         }
         $this->params['notes'] = $notes;
 

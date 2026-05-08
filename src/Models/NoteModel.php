@@ -14,6 +14,7 @@ class NoteModel
     public const ATTR_PUBLIC = 1;
     public const ATTR_PINNED = 2;
     public const ATTR_DRAFT  = 4;
+    public const ATTR_ENCRYPT = 8;
 
     public function __construct(Medoo $db)
     {
@@ -22,7 +23,19 @@ class NoteModel
 
     public function findById(int $id): ?array
     {
-        return $this->db->get($this->table, '*', ['id' => $id]);
+        return $this->db->get($this->table, [
+            "[>]sections" => ["section_id" => "id"],
+            "[>]notebooks" => ["sections.notebook_id" => "id"]
+        ], [
+            "notes.id",
+            "notes.section_id",
+            "notes.title",
+            "notes.content",
+            "notes.attributes",
+            "notes.created_at",
+            "notes.updated_at",
+            "notebooks.user_id"
+        ], ['notes.id' => $id]);
     }
 
     public function findBySectionId(int $sectionId): array
@@ -111,7 +124,7 @@ class NoteModel
     {
         $data['updated_at'] = date('Y-m-d H:i:s');
         $result = $this->db->update($this->table, $data, ['id' => $id]);
-        return $result->rowCount() > 0;
+        return $result && $result->rowCount() > 0;
     }
 
     public function delete(int $id): bool

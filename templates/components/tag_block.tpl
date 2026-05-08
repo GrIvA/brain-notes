@@ -44,10 +44,10 @@
             {/foreach}
         {elseif $mode == 'manage'}
             {foreach $tags as $tag}
-                <span class="tag-badge-manage" id="note-tag-{$tag.id}>
+                <span class="tag-badge-manage" id="note-tag-{$tag.id}">
                     <small>{$tag.name}</small>
                     {if $canEdit}
-                        <i class="fas fa-times" 
+                        <i class="fas fa-times" style="margin-left:5px;"
                            hx-delete="/api/v1/notes/{$note.id}/tags/{$tag.id}"
                            hx-target="#note-tag-{$tag.id}"
                            hx-swap="outerHTML"
