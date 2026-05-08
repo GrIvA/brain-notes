@@ -70,6 +70,21 @@ class SectionModel
         return $path;
     }
 
+    /**
+     * Get all descendant IDs of a section (including itself).
+     */
+    public function getAllChildIds(int $sectionId): array
+    {
+        $ids = [$sectionId];
+        $children = $this->db->select($this->table, 'id', ['parent_id' => $sectionId]);
+        
+        foreach ($children as $childId) {
+            $ids = array_merge($ids, $this->getAllChildIds((int)$childId));
+        }
+        
+        return $ids;
+    }
+
     public function create(array $data): int|string|null
     {
         $data['created_at'] = date('Y-m-d H:i:s');

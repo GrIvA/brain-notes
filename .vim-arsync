@@ -1,0 +1,11 @@
+remote_host    orange
+remote_user    archor
+remote_port    2029
+remote_path     ~/works/sites8/blog/html/
+# remote_passwd
+local_path    /home/archpi/work/web/sites8/bot/html/
+ignore_path     ["vendor/","files/", "settings/settings_custom.php", "settings/database.db", ".git/",".tags/","logs/", "index_list"]
+ignore_dotfiles 1
+auto_sync_up    0
+remote_or_local remote
+sleep_before_sync 0

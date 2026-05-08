@@ -1,9 +1,6 @@
-<!-- jQuery (required for jsTree) -->
-<script src="/js/jquery.min.js"></script>
-
-<!-- jsTree -->
-<link id="jstree-theme-link" rel="stylesheet" href="/js/jsTree/themes/default/style.min.css">
-<script src="/js/jsTree/jstree.min.js"></script>
+<!-- AimaraJS -->
+<link rel="stylesheet" href="/css/Aimara.css">
+<script src="/js/Aimara.js"></script>
 
 <script>
 {ignore}
@@ -25,7 +22,6 @@
     const themeBtn = document.getElementById('theme-switcher');
     const themeIcon = document.getElementById('theme-icon');
     const root = document.documentElement;
-    const jstreeThemeLink = document.getElementById('jstree-theme-link');
     
     const moonIcon = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
     const sunIcon = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
@@ -42,12 +38,6 @@
         
         themeIcon.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
         
-        // Оновлення теми jsTree
-        if (jstreeThemeLink) {
-            const themePath = theme === 'dark' ? '/js/jsTree/themes/default-dark/style.min.css' : '/js/jsTree/themes/default/style.min.css';
-            jstreeThemeLink.setAttribute('href', themePath);
-        }
-
         // Повідомляємо компоненти про зміну теми
         window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme } }));
     };
@@ -65,17 +55,9 @@
             notebooks: [],
             activeNotebookId: initialNotebookId,
             selectedSectionId: null,
+            treeInstance: null,
             
             async initTree() {
-                // Слухаємо зміну теми
-                window.addEventListener('theme-changed', (e) => {
-                    const $tree = $('#section-tree');
-                    if ($tree.jstree(true)) {
-                        const newTheme = e.detail.theme === 'dark' ? 'default-dark' : 'default';
-                        $tree.jstree(true).set_theme(newTheme);
-                    }
-                });
-
                 try {
                     const response = await fetch('/api/v1/notebooks');
                     if (response.ok) {
@@ -121,51 +103,52 @@
                 try {
                     const response = await fetch(`/api/v1/notebooks/${this.activeNotebookId}/tree`);
                     if (response.ok) {
-                        const rawData = await response.json();
-                        const treeData = this.mapTreeData(rawData);
-                        
-                        this.renderJsTree(treeData);
+                        const treeData = await response.json();
+                        this.renderAimaraTree(treeData);
                     }
                 } catch (e) {
                     console.error('Failed to load tree', e);
                 }
             },
 
-            mapTreeData(data) {
-                return data.map(node => ({
-                    id: node.id,
-                    text: node.title,
-                    state: { opened: true },
-                    children: node.children ? this.mapTreeData(node.children) : []
-                }));
-            },
+            renderAimaraTree(data) {
+                this.treeInstance = new Tree('section-tree');
+                
+                // Recursive builder
+                const buildNodes = (nodes, parentNode = null) => {
+                    nodes.forEach(dataNode => {
+                        const node = this.treeInstance.createNode(
+                            dataNode.title, 
+                            dataNode.id, 
+                            'fa-solid fa-folder', 
+                            parentNode, 
+                            true
+                        );
+                        if (dataNode.children && dataNode.children.length > 0) {
+                            buildNodes(dataNode.children, node);
+                        }
+                    });
+                };
 
-            renderJsTree(data) {
-                const $tree = $('#section-tree');
-                if ($tree.jstree(true)) {
-                    $tree.jstree(true).settings.core.data = data;
-                    $tree.jstree(true).refresh();
-                } else {
-                    $tree.jstree({
-                        'core': {
-                            'data': data,
-                            'themes': {
-                                'name': currentTheme === 'dark' ? 'default-dark' : 'default',
-                                'responsive': true
-                            }
-                        },
-                        'plugins': ['wholerow', 'types']
+                buildNodes(data);
+                
+                this.treeInstance.onNodeSelected = (node) => {
+                    this.selectedSectionId = node.id;
+                    console.log('Selected section:', this.selectedSectionId);
+                    
+                    // Викликаємо фільтрацію нотаток через HTMX
+                    htmx.ajax('GET', '/api/v1/notes/list', {
+                        values: { section_id: node.id },
+                        target: '#note-list'
                     });
 
-                    $tree.on('select_node.jstree', (e, data) => {
-                        this.selectedSectionId = data.node.id;
-                        console.log('Selected section:', this.selectedSectionId);
-                        // Оновлюємо HTMX елементи, що залежать від цього ID
-                        this.$nextTick(() => {
-                            htmx.process(document.getElementById('sidebar'));
-                        });
+                    // Оновлюємо HTMX елементи, що залежать від цього ID (наприклад, кнопка +)
+                    this.$nextTick(() => {
+                        htmx.process(document.getElementById('sidebar'));
                     });
-                }
+                };
+
+                this.treeInstance.drawTree();
             }
         };
     }

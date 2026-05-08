@@ -329,9 +329,12 @@ class NoteController extends AbstractController
 
         $criteria = [
             'tag_ids' => $queryParams['tag_ids'] ?? [],
-            'section_id' => $queryParams['section_id'] ?? null,
             'user_id' => $user ? $user->getId() : null
         ];
+
+        if (!empty($queryParams['section_id'])) {
+            $criteria['section_id'] = $this->sectionModel->getAllChildIds((int)$queryParams['section_id']);
+        }
 
         $notesData = $this->noteModel->findFiltered($criteria);
         $notes = [];

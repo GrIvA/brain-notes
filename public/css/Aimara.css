@@ -1,0 +1,68 @@
+/* AimaraJS Basic Styles */
+.aimara-tree, .aimara-tree ul {
+    list-style: none;
+    padding-left: 1.2rem;
+    margin: 0;
+}
+
+.aimara-tree {
+    padding-left: 0;
+}
+
+.aimara-node { margin: 0; padding: 0; }
+
+.node-wrapper {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    border-radius: var(--pico-border-radius);
+    transition: background 0.2s;
+    padding: 2px;
+}
+
+.node-wrapper:hover {
+    background: var(--pico-secondary-hover-background);
+}
+
+.node-wrapper.selected {
+    background: var(--pico-primary-background);
+    color: var(--pico-primary-inverse);
+    font-weight: bold;
+}
+
+.node-toggle {
+    width: 1rem;
+    height: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.25rem;
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 0.7rem;
+}
+
+.expanded > .node-wrapper > .node-toggle::before {
+    content: "\f0d7"; /* chevron-down */
+}
+
+.collapsed > .node-wrapper > .node-toggle::before {
+    content: "\f0da"; /* chevron-right */
+}
+
+.node-spacer {
+    width: 1.25rem;
+}
+
+.node-icon {
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+    width: 1rem;
+    text-align: center;
+}
+
+.node-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
