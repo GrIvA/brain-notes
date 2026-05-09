@@ -51,7 +51,7 @@
 
     // Alpine.js Sidebar Component
     function sidebarTree(initialNotebookId = 0) {
-        return {
+        const instance = {
             notebooks: [],
             activeNotebookId: initialNotebookId,
             selectedSectionId: null,
@@ -96,7 +96,13 @@
             },
 
             async loadTree() {
-                if (!this.activeNotebookId) return;
+                if (!this.activeNotebookId) {
+                    if (this.treeInstance) {
+                        this.treeInstance.nodes = [];
+                        this.treeInstance.drawTree();
+                    }
+                    return;
+                }
                 this.selectedSectionId = null;
                 this.saveActiveNotebook();
                 
@@ -105,6 +111,9 @@
                     if (response.ok) {
                         const treeData = await response.json();
                         this.renderAimaraTree(treeData);
+
+                        // Повідомляємо HTMX про нові елементи в дереві
+                        setTimeout(() => htmx.process(document.getElementById('section-tree')), 50);
                     }
                 } catch (e) {
                     console.error('Failed to load tree', e);
@@ -151,6 +160,15 @@
                 this.treeInstance.drawTree();
             }
         };
+
+        window.sidebarTreeInstance = instance;
+        
+        // Слухаємо подію для оновлення сайдбару
+        document.addEventListener('refresh-sidebar', () => {
+            instance.initTree();
+        });
+
+        return instance;
     }
 
     // Закриття при кліку на лінки в мобільному меню

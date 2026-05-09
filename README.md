@@ -1,5 +1,220 @@
 # Brain Notes
 
+A personal notebook with a focus on speed, privacy, and tree structure.
+
+## Tech Stack
+- **Backend:** PHP 8.2+ (Slim PHP Framework).
+- **Languages:** Multi-language support with translation via XML resources.
+- **Authentication:** JWT (via `lcobucci/jwt`).
+- **Templates:** Fenom (Template Engine).
+- **Database:** SQLite (via `catfan/medoo`).
+- **Frontend**: HTMX (for dynamics) + Alpine.js (for client state).
+- **Theme Management**: Support for dark/light themes with synchronization via Cookie and prevention of Flash of Unstyled Content (FOUC) using Server-Side Rendering (SSR) of the `data-theme` attribute.
+- **Markdown**: `erusev/parsedown`.
+
+## App Architecture
+- **Middleware**: Request processing logic.
+    - `IpSecurityMiddleware`: Blocks suspicious IP addresses (first in the chain).
+    - `AuthMiddleware`: Global authentication.
+    - `LanguageMiddleware`: Language detection.
+    - `PageAliasMiddleware`: Handles page aliases.
+- **Services**: Business logic (translations, XML processing).
+- **Models**: Data Access Layer. All Medoo queries are encapsulated in model classes in `src/Models/`.
+- **Notebooks & Sections**: Hierarchical structure of notebooks and sections with support for recursive nesting (Recursive Adjacency List). Management of notebooks (create, edit, delete) and adding sections/notes are available directly in the sidebar.
+- **Registry**: Flexible system for metadata and hierarchical structures (tags, settings, sections), implemented via `TagRegistry` and `RegistryModel` (EAV pattern).
+- **Authentication**: JWT-based authentication for API with support for Role-Based Access Control (RBAC) via bitmask.
+- **Access Control**: Strict ownership verification at the controller level. Users can only see their own data.
+- **Error Handling**: Centralized error handling system.
+    - `ErrorPage`: Controller for rendering themed error pages (404, 403, 500) within the site design.
+    - `ExceptionHandlingMiddleware`: Intercepts exceptions and automatically selects the response format (HTML for browser or JSON for API).
+    - Automatic redirect of unauthenticated users to the login page when attempting to access protected resources.
+- **Entities**: Support for entity objects (e.g., `BaseEntity`, `User`) that integrate model data and registry metadata via the "Lazy Collection" pattern.
+- **Controllers**: Thin controllers coordinating models and services for page rendering.
+
+## Template Architecture
+We use a structured template system in `templates/`:
+- `layouts/`: Base page layouts (e.g., `main.tpl`). Contains global containers (e.g., `#modal-container`, `.toast-container`) and global JS variables for state synchronization.
+- `pages/`: Specific templates for each route.
+- `components/`: Reusable HTML fragments ready for use with HTMX (including `tag_block`, `note_list`, `tag_autocomplete`).
+
+## Data Storage Structure
+- `storage/db/`: Contains the SQLite database file (`database.db`). The directory is protected from direct access and ignored by the Git version control system.
+- `logs/`: Application logs directory.
+
+## Features
+- **Hierarchy:** Tree-like structure of notebooks and sections.
+- **Management:** Convenient notebook management interface via the "⚙️" button, contextual addition of sections/notes via icons in the tree, as well as **inline editing of note content** directly on the view page.
+- **Tag Management:** Dynamic note filtering by tags and a built-in autocomplete for fast tagging.
+- **Interactivity:** Note control panel with HTMX support for instant updates.
+
+## Local Libraries
+All frontend libraries (`htmx.min.js`, `alpine.min.js`, `tag-autocomplete.js`) are hosted locally in `public/js/` for privacy and speed. FontAwesome 6.5.1 fonts are located in `public/webfonts/`.
+
+## Authentication
+The system supports user registration, login, and logout:
+- **JWT + TagRegistry**: A hybrid approach is used. Each token has a unique JTI registered in the user's tag system. This allows for instant session invalidation upon Logout.
+- **Cookies**: For the web interface, the token is stored in an `httpOnly` cookie.
+- **Middleware**: Automatically identifies the user by the Authorization header or Cookie.
+
+## Useful Commands (Docker)
+- PHP Execution: `docker exec -w /app/blog/html web8 php [args]`
+- Running Tests:
+  - Authentication: `docker exec -w /app/blog/html web8 php tests/Site/user/test_auth_flow.php`
+  - Note Viewing: `docker exec -w /app/blog/html web8 php tests/Site/user/test_note_view.php`
+  - Tag Filtering: `docker exec -w /app/blog/html web8 php tests/Site/user/test_tag_filtering.php`
+
+## API Usage (cURL examples)
+
+### User Authentication
+To work with the API, you need to obtain an authorization token.
+
+**Registration:**
+```bash
+curl -X POST http://blog.test:88/register \
+     -H "Content-Type: application/json" \
+     -d '{"email": "user@example.com", "password": "password123", "name": "User Name"}' \
+     -c cookies.txt
+```
+
+**Login:**
+```bash
+curl -X POST http://blog.test:88/login \
+     -H "Content-Type: application/json" \
+     -d '{"email": "user@example.com", "password": "password123"}' \
+     -c cookies.txt
+```
+
+### Sliding Session (Automatic Token Refresh)
+The system automatically refreshes the token if more than 2/3 of its lifetime has passed. `curl` automatically updates the session if you use `-c cookies.txt`.
+
+**Refresh Check (look for Set-Cookie header in response):**
+```bash
+curl -X GET http://blog.test:88/api/v1/notebooks \
+     -b cookies.txt \
+     -c cookies.txt \
+     -v
+```
+
+**Create Notebook:**
+```bash
+curl -X POST http://blog.test:88/api/v1/notebooks \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"title": "My working notebook", "attributes": 1}'
+```
+
+**Get Notebook List:**
+```bash
+curl -X GET http://blog.test:88/api/v1/notebooks -b cookies.txt
+```
+
+**Update Notebook (set default flag):**
+```bash
+curl -X PATCH http://blog.test:88/api/v1/notebooks/1 \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"attributes": 1}'
+```
+
+**Add Section (root):**
+```bash
+curl -X POST http://blog.test:88/api/v1/sections \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"notebook_id": 1, "title": "Section Title", "parent_id": null}'
+```
+
+**Get Notebook Section Tree:**
+```bash
+curl -X GET http://blog.test:88/api/v1/notebooks/1/tree -b cookies.txt
+```
+
+**Move Section (change parent_id):**
+```bash
+curl -X PATCH http://blog.test:88/api/v1/sections/2/move \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"parent_id": 3}'
+```
+
+### Notes Management
+Notes always belong to a specific section.
+
+**Create Note:**
+```bash
+curl -X POST http://blog.test:88/api/v1/notes \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"section_id": 1, "title": "First note", "content": "# Hello\nThis is md.", "attributes": 0}'
+```
+
+**Get Note:**
+```bash
+curl -X GET http://blog.test:88/api/v1/notes/1 -b cookies.txt
+```
+
+**Bulk Note Move by ID list:**
+```bash
+curl -X PATCH http://blog.test:88/api/v1/notes/move \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"target_section_id": 2, "note_ids": [1, 2, 3]}'
+```
+
+**Bulk Migration of all notes from section to section:**
+```bash
+curl -X PATCH http://blog.test:88/api/v1/notes/move \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"target_section_id": 2, "source_section_id": 1}'
+```
+
+### Tags Management
+The system supports global tags within the user scope with automatic normalization.
+
+**Get All Tags (dictionary):**
+```bash
+curl -X GET http://blog.test:88/api/v1/tags -b cookies.txt
+```
+
+**Link Tags to a Note:**
+```bash
+curl -X POST http://blog.test:88/api/v1/notes/1/tags \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"tags": ["PHP", "web", "Backend"]}'
+```
+
+**Search Notes by Multiple Tags (AND by default):**
+```bash
+curl -X GET "http://blog.test:88/api/v1/notes/search-by-tags?tag_ids[]=1&tag_ids[]=2" -b cookies.txt
+```
+
+**Search Tags in OR mode (at least one):**
+```bash
+curl -X GET "http://blog.test:88/api/v1/notes/search-by-tags?tag_ids[]=1&tag_ids[]=2&mode=OR" -b cookies.txt
+```
+
+### IP Security
+Get all IPs:
+```bash
+curl -X GET http://blog.test:88/api/v1/security/ips \
+     -H "Content-Type: application/json" \
+     -b cookies.txt
+```
+
+Change IP Status (normal, allow, disabled):
+```bash
+curl -X PATCH http://blog.test:88/api/v1/security/ips/1.2.3.4 \
+     -H "Content-Type: application/json" \
+     -b cookies.txt \
+     -d '{"status": "allow"}'
+```
+
+---
+
+# Brain Notes
+
 Це персональний нотатник з упором на швидкість, приватність та деревоподібну структуру.
 
 ## Технологічний стек
@@ -20,7 +235,7 @@
     - `PageAliasMiddleware`: Робота з аліасами сторінок.
 - **Services**: Бізнес-логіка (переклади, робота з XML).
 - **Models**: Шар доступу до даних (Data Access Layer). Усі запити до Medoo інкапсульовані в класах моделей у `src/Models/`.
-- **Notebooks & Sections**: Ієрархічна структура зошитів та розділів з підтримкою деревовидної вкладеності (Recursive Adjacency List).
+- **Notebooks & Sections**: Ієрархічна структура зошитів та розділів з підтримкою деревовидної вкладеності (Recursive Adjacency List). Керування зошитами (створення, редагування, видалення) та додавання розділів/нотаток доступні безпосередньо у сайдбарі.
 - **Registry**: Гнучка система метаданих та ієрархічних структур (теги, налаштування, розділи), реалізована через `TagRegistry` та `RegistryModel` (патерн EAV).
 - **Authentication**: JWT-базована аутентифікація для API з підтримкою контролю доступу на основі ролей (RBAC) через бітову маску.
 - **Access Control**: Сувора перевірка прав власності на рівні контролерів. Користувачі можуть бачити лише власні дані.
@@ -43,6 +258,7 @@
 
 ## Особливості
 - **Ієрархія:** Деревоподібна структура зошитів та розділів.
+- **Керування:** Зручний інтерфейс для створення та редагування зошитів через кнопку «⚙️», контекстне додавання розділів/нотаток через іконки у дереві, а також **inline-редагування вмісту нотаток** прямо на сторінці перегляду.
 - **Керування тегами:** Динамічна фільтрація нотаток за тегами та вбудований автокомпліт для швидкого тегування.
 - **Інтерактивність:** Панель керування нотатками з підтримкою HTMX для миттєвого оновлення.
 

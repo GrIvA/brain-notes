@@ -22,6 +22,69 @@ class NotebookController extends AbstractController
         $this->notebookModel = $container->get(NotebookModel::class);
     }
 
+    public function manageUI(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        if (!$user) {
+            return JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
+        $notebooks = $this->notebookModel->findByUserId($user->getId());
+        $tmpl = $this->container->get('tmpl');
+        
+        $html = $tmpl->fetch('components/notebook_manage_modal.tpl', [
+            'notebooks' => $notebooks
+        ]);
+
+        $res->getBody()->write($html);
+        return $res;
+    }
+
+    public function createUI(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        if (!$user) {
+            return JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
+        $tmpl = $this->container->get('tmpl');
+        $html = $tmpl->fetch('components/notebook_form_modal.tpl', [
+            'mode' => 'create',
+            'notebook' => [
+                'id' => 0,
+                'title' => '',
+                'attributes' => 0
+            ]
+        ]);
+
+        $res->getBody()->write($html);
+        return $res;
+    }
+
+    public function editUI(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
+    {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        if (!$user) {
+            return JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
+        $id = (int)($args['id'] ?? 0);
+        $notebook = $this->notebookModel->findById($id);
+
+        if (!$notebook || (int)$notebook['user_id'] !== $user->getId()) {
+            return JsonHandler::response($res, ['error' => 'Notebook not found'], 404);
+        }
+
+        $tmpl = $this->container->get('tmpl');
+        $html = $tmpl->fetch('components/notebook_form_modal.tpl', [
+            'mode' => 'edit',
+            'notebook' => $notebook
+        ]);
+
+        $res->getBody()->write($html);
+        return $res;
+    }
+
     public function index(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
         /** @var User $user */

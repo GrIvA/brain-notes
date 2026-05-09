@@ -42,6 +42,16 @@
                             </div>
                         </div>
                     </div>
+                    <div class="grid">
+                        <div>
+                            <button class="contrast" 
+                                    hx-get="/api/v1/notes/{$note.id}/edit-ui" 
+                                    hx-target="#note-content-area"
+                                    hx-swap="innerHTML">
+                                <i class="fas fa-edit"></i> Редагувати вміст
+                            </button>
+                        </div>
+                    </div>
                     <hr>
                     <div class="grid">
                         <div>

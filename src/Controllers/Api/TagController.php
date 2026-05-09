@@ -37,6 +37,9 @@ class TagController extends AbstractController
     {
         /** @var User $user */
         $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $tags = $this->tagModel->getAllUserTags($user->getId());
 
         return \App\Responder\JsonHandler::response($res, $tags);
@@ -49,6 +52,9 @@ class TagController extends AbstractController
     {
         /** @var User $user */
         $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $noteId = (int)($args['note_id'] ?? 0);
         $data = $req->getParsedBody();
         $tagName = $data['tag'] ?? '';
@@ -76,6 +82,9 @@ class TagController extends AbstractController
     {
         /** @var User $user */
         $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $noteId = (int)($args['note_id'] ?? 0);
         $data = $req->getParsedBody();
         $tagNames = $data['tags'] ?? [];
@@ -102,6 +111,9 @@ class TagController extends AbstractController
     {
         /** @var User $user */
         $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $queryParams = $req->getQueryParams();
         
         $tagIds = $queryParams['tag_ids'] ?? [];
@@ -127,6 +139,9 @@ class TagController extends AbstractController
     {
         /** @var User $user */
         $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $noteId = (int)($args['note_id'] ?? 0);
         $tagId = (int)($args['tag_id'] ?? 0);
 

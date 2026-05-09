@@ -157,3 +157,28 @@ ul li .lang-switcher summary { padding: 0 7px; }
     text-shadow: none;
   }
 }
+
+/* Tree Node Actions */
+.node-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+.node-actions {
+    margin-left: auto;
+    display: none;
+    padding-right: 0.5rem;
+}
+.node-wrapper:hover .node-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+.node-action-btn {
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--secondary);
+    transition: color 0.2s;
+}
+.node-action-btn:hover {
+    color: var(--primary);
+}

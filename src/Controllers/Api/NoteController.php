@@ -90,8 +90,64 @@ class NoteController extends AbstractController
         ]);
     }
 
+    public function editUI(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
+    {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
+        $id = (int)($args['id'] ?? 0);
+        $note = $this->noteModel->findById($id);
+
+        if (!$note || !$this->checkSectionAccess((int)$note['section_id'], $user)) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Note not found'], 404);
+        }
+
+        $tmpl = $this->container->get('tmpl');
+        $html = $tmpl->fetch('components/note_edit_form.tpl', [
+            'note' => $note
+        ]);
+
+        $res->getBody()->write($html);
+        return $res;
+    }
+
+    public function viewFragment(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
+    {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        $id = (int)($args['id'] ?? 0);
+        $note = $this->noteModel->findById($id);
+
+        if (!$note) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Note not found'], 404);
+        }
+
+        // Check access (could be public)
+        $registryModel = $this->container->get(\App\Models\RegistryModel::class);
+        $noteEntity = new \App\Entities\Note($note, $registryModel);
+
+        if (!$this->checkSectionAccess((int)$note['section_id'], $user) && !$noteEntity->isPublic()) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Access denied'], 403);
+        }
+
+        $tmpl = $this->container->get('tmpl');
+        $html = $tmpl->compileCode('{$content|markdown}')->fetch([
+            'content' => $note['content']
+        ]);
+
+        $res->getBody()->write($html);
+        return $res;
+    }
+
     public function createUI(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $queryParams = $req->getQueryParams();
         $sectionId = (int)($queryParams['section_id'] ?? 0);
         $tmpl = $this->container->get('tmpl');
@@ -106,6 +162,11 @@ class NoteController extends AbstractController
 
     public function moveUI(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
     {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $id = (int)($args['id'] ?? 0);
         $tmpl = $this->container->get('tmpl');
         
@@ -118,7 +179,11 @@ class NoteController extends AbstractController
 
     public function store(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
+        /** @var User $user */
         $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $data = $req->getParsedBody();
 
         $sectionId = (int)($data['section_id'] ?? 0);
@@ -240,9 +305,19 @@ class NoteController extends AbstractController
 
         $this->noteModel->update($id, $data);
 
-        if ($req->hasHeader('HX-Request') && count($data) === 1 && isset($data['title'])) {
-            $res->getBody()->write($data['title']);
-            return $res;
+        if ($req->hasHeader('HX-Request')) {
+            if (count($data) === 1 && isset($data['title'])) {
+                $res->getBody()->write($data['title']);
+                return $res;
+            }
+            if (isset($data['content']) && !isset($data['password'])) {
+                $tmpl = $this->container->get('tmpl');
+                $html = $tmpl->compileCode('{$content|markdown}')->fetch([
+                    'content' => $data['content']
+                ]);
+                $res->getBody()->write($html);
+                return $res;
+            }
         }
 
         return \App\Responder\JsonHandler::response($res, ['message' => 'Note updated']);

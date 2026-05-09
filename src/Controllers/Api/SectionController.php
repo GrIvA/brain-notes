@@ -24,10 +24,34 @@ class SectionController extends AbstractController
         $this->notebookModel = $container->get(NotebookModel::class);
     }
 
+    public function createUI(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        /** @var User $user */
+        $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
+        $queryParams = $req->getQueryParams();
+        $notebookId = (int)($queryParams['notebook_id'] ?? 0);
+        $parentId = isset($queryParams['parent_id']) ? (int)$queryParams['parent_id'] : null;
+        
+        $tmpl = $this->container->get('tmpl');
+        $html = $tmpl->fetch('components/section_create_modal.tpl', [
+            'notebookId' => $notebookId,
+            'parentId' => $parentId
+        ]);
+
+        $res->getBody()->write($html);
+        return $res;
+    }
+
     public function tree(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
     {
         /** @var User $user */
         $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $notebookId = (int)($args['id'] ?? 0);
 
         if (!$this->checkNotebookOwnership($notebookId, $user->getId())) {
@@ -42,6 +66,9 @@ class SectionController extends AbstractController
     {
         /** @var User $user */
         $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $data = $req->getParsedBody();
 
         $notebookId = (int)($data['notebook_id'] ?? 0);
@@ -70,6 +97,9 @@ class SectionController extends AbstractController
     {
         /** @var User $user */
         $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $id = (int)($args['id'] ?? 0);
         $data = $req->getParsedBody();
         $newParentId = isset($data['parent_id']) ? (int)$data['parent_id'] : null;
@@ -90,6 +120,9 @@ class SectionController extends AbstractController
     {
         /** @var User $user */
         $user = $req->getAttribute('user');
+        if (!$user) {
+            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
+        }
         $id = (int)($args['id'] ?? 0);
 
         $section = $this->sectionModel->findById($id);

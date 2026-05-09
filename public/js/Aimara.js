@@ -79,6 +79,28 @@ function Tree(containerId) {
         text.innerText = node.text;
         wrapper.appendChild(text);
 
+        // Action Buttons
+        var actions = document.createElement('span');
+        actions.className = 'node-actions';
+        
+        // Add Section button
+        var addSec = document.createElement('i');
+        addSec.className = 'fas fa-plus-circle node-action-btn';
+        addSec.title = 'Додати підрозділ';
+        addSec.setAttribute('hx-get', '/api/v1/sections/create-ui?notebook_id=' + (window.sidebarTreeInstance ? window.sidebarTreeInstance.activeNotebookId : '') + '&parent_id=' + node.id);
+        addSec.setAttribute('hx-target', '#modal-container');
+        actions.appendChild(addSec);
+
+        // Add Note button
+        var addNote = document.createElement('i');
+        addNote.className = 'fas fa-file-circle-plus node-action-btn';
+        addNote.title = 'Додати нотатку';
+        addNote.setAttribute('hx-get', '/api/v1/notes/create-ui?section_id=' + node.id);
+        addNote.setAttribute('hx-target', '#modal-container');
+        actions.appendChild(addNote);
+
+        wrapper.appendChild(actions);
+
         wrapper.onclick = () => {
             this.selectedNode = node;
             this.drawTree();

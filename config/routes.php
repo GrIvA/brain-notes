@@ -56,13 +56,17 @@ return function (App $app) {
         $group->patch('/security/ips/{ip}', SecurityController::class . ':setStatus');
 
         // Notebooks
-        $group->get('/notebooks',         NotebookController::class . ':index');
-        $group->post('/notebooks',        NotebookController::class . ':store');
-        $group->patch('/notebooks/{id}',  NotebookController::class . ':update');
-        $group->delete('/notebooks/{id}', NotebookController::class . ':delete');
+        $group->get('/notebooks',             NotebookController::class . ':index');
+        $group->get('/notebooks/manage-ui',   NotebookController::class . ':manageUI');
+        $group->get('/notebooks/create-ui',   NotebookController::class . ':createUI');
+        $group->get('/notebooks/edit-ui/{id}',NotebookController::class . ':editUI');
+        $group->post('/notebooks',            NotebookController::class . ':store');
+        $group->patch('/notebooks/{id}',      NotebookController::class . ':update');
+        $group->delete('/notebooks/{id}',     NotebookController::class . ':delete');
 
         // Sections
         $group->get('/notebooks/{id}/tree',  SectionController::class . ':tree');
+        $group->get('/sections/create-ui',   SectionController::class . ':createUI');
         $group->post('/sections',            SectionController::class . ':store');
         $group->patch('/sections/{id}/move', SectionController::class . ':move');
         $group->delete('/sections/{id}',     SectionController::class . ':delete');
@@ -72,6 +76,8 @@ return function (App $app) {
         $group->get('/notes/list',               NoteController::class . ':listFiltered');
         $group->get('/notes/create-ui',          NoteController::class . ':createUI');
         $group->get('/notes/move-ui/{id}',       NoteController::class . ':moveUI');
+        $group->get('/notes/{id}/edit-ui',       NoteController::class . ':editUI');
+        $group->get('/notes/{id}/view-fragment', NoteController::class . ':viewFragment');
         $group->patch('/notes/move',             NoteController::class . ':move');
         $group->get('/notes/decrypt-ui/{id}',    NoteController::class . ':decryptUI');
         $group->post('/notes/decrypt/{id}',      NoteController::class . ':decrypt');
@@ -86,6 +92,5 @@ return function (App $app) {
         $group->post('/notes/{note_id}/tags',     TagController::class . ':sync');
         $group->post('/notes/{note_id}/tags/add', TagController::class . ':add');
 
-    })->add(ApiContentTypeMiddleware::class)
-      ->add(AuthMiddleware::class);
+    })->add(ApiContentTypeMiddleware::class);
 };

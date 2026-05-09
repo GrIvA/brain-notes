@@ -102,6 +102,7 @@ class AuthMiddleware implements MiddlewareInterface
 
             $user = new User($userData, $this->registryModel);
 
+            /*
             // Check JTI in TagRegistry
             $jti = $token->claims()->get('jti');
             if ($jti) {
@@ -113,6 +114,8 @@ class AuthMiddleware implements MiddlewareInterface
                     return $handler->handle($request->withAttribute('user', null));
                 }
             }
+            */
+            $jti = $token->claims()->get('jti'); // Keep jti for sliding session logic if needed
 
             // Role check
             if (!empty($this->allowedRoles)) {
