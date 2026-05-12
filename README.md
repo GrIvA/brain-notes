@@ -12,6 +12,38 @@ A personal notebook with a focus on speed, privacy, and tree structure.
 - **Theme Management**: Support for dark/light themes with synchronization via Cookie and prevention of Flash of Unstyled Content (FOUC) using Server-Side Rendering (SSR) of the `data-theme` attribute.
 - **Markdown**: `erusev/parsedown`.
 
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone <repository_url>
+   cd brain-notes
+   ```
+2. Switch to the `releases` branch:
+   ```bash
+   git checkout releases
+   ```
+3. Prepare the environment configuration:
+   ```bash
+   cp config/env/env_example.php config/env/env.php
+   ```
+   *Edit `config/env/env.php` to set your variables if necessary.*
+4. Prepare the database:
+   ```bash
+   cp storage/db/database_example.db storage/db/database.db
+   # Set write permissions for your web server
+   chmod 666 storage/db/database.db
+   ```
+5. Create the `tmp/` directory and set permissions:
+   ```bash
+   mkdir -p tmp
+   chmod 775 tmp
+   # Ensure the web server can write to this directory
+   ```
+6. Install dependencies:
+   ```bash
+   composer install
+   ```
+
 ## App Architecture
 - **Middleware**: Request processing logic.
     - `IpSecurityMiddleware`: Blocks suspicious IP addresses (first in the chain).
@@ -44,7 +76,7 @@ We use a structured template system in `templates/`:
 ## Features
 - **Hierarchy:** Tree-like structure of notebooks and sections.
 - **Management:** Convenient notebook management interface via the "⚙️" button, contextual addition of sections/notes via icons in the tree (on Homepage), as well as **inline editing of note content** directly on the view page.
-- **Tag Management:** Dynamic note filtering by tags and a built-in autocomplete for fast tagging.
+- **Tag Management:** Dynamic note filtering by tags using global state (synchronization between the sidebar and the note footer) and a built-in autocomplete for fast tagging.
 - **Interactivity:** Note control panel with HTMX support for instant updates.
 
 ## Local Libraries
@@ -226,6 +258,38 @@ curl -X PATCH http://blog.test:88/api/v1/security/ips/1.2.3.4 \
 - **Frontend**: HTMX (для динаміки) + Alpine.js (для клієнтського стану).
 - **Theme Management**: Підтримка темної/світлої теми з синхронізацією через Cookie та запобіганням спалаху темної теми (FOUC) за допомогою Server-Side Rendering (SSR) атрибута `data-theme`.
 - **Markdown**: `erusev/parsedown`.
+
+## Встановлення
+1. Склонуйте репозиторій:
+   ```bash
+   git clone <repository_url>
+   cd brain-notes
+   ```
+2. Перейдіть на гілку `releases`:
+   ```bash
+   git checkout releases
+   ```
+3. Підготуйте конфігурацію середовища:
+   ```bash
+   cp config/env/env_example.php config/env/env.php
+   ```
+   *Відредагуйте `config/env/env.php`, щоб додати власні змінні за потреби.*
+4. Підготуйте базу даних:
+   ```bash
+   cp storage/db/database_example.db storage/db/database.db
+   # Надайте права на запис для вашого веб-сервера
+   chmod 666 storage/db/database.db
+   ```
+5. Створіть папку `tmp/` та налаштуйте права доступу:
+   ```bash
+   mkdir -p tmp
+   chmod 775 tmp
+   # Переконайтеся, що веб-сервер має права на запис у цю директорію
+   ```
+6. Встановіть необхідні залежності:
+   ```bash
+   composer install
+   ```
 
 ## Архітектура додатку
 - **Middleware**: Логіка обробки запитів.
@@ -410,7 +474,7 @@ curl -X GET "http://blog.test:88/api/v1/notes/search-by-tags?tag_ids[]=1&tag_ids
 curl -X GET "http://blog.test:88/api/v1/notes/search-by-tags?tag_ids[]=1&tag_ids[]=2&mode=OR" -b cookies.txt
 ```
 
-### IP security
+### IP Security
 Отримання списку всіх IPs:
 ```bash
 curl -X GET http://blog.test:88/api/v1/security/ips \
@@ -418,7 +482,7 @@ curl -X GET http://blog.test:88/api/v1/security/ips \
      -b cookies.txt
 ```
 
-Зміна статусу IP (normal, allow, disabled):**
+Зміна статусу IP (normal, allow, disabled):
 ```bash
 curl -X PATCH http://blog.test:88/api/v1/security/ips/1.2.3.4 \
      -H "Content-Type: application/json" \
