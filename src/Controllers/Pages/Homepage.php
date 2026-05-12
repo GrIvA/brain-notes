@@ -30,9 +30,19 @@ class Homepage extends SiteController
     {
         $tagModel = $this->container->get(\App\Models\TagModel::class);
         $noteModel = $this->container->get(\App\Models\NoteModel::class);
+        $sectionModel = $this->container->get(\App\Models\SectionModel::class);
+
+        $sectionId = isset($this->params['section_id']) ? (int)$this->params['section_id'] : null;
 
         $userId = $this->user ? (int)$this->user->getId() : null;
-        $notesData = $noteModel->findFiltered(['user_id' => $userId]);
+        
+        $criteria = ['user_id' => $userId];
+        if ($sectionId) {
+            $criteria['section_id'] = $sectionModel->getAllChildIds($sectionId);
+            $this->params['common']['active_section_id'] = $sectionId;
+        }
+
+        $notesData = $noteModel->findFiltered($criteria);
         $notes = [];
         $registryModel = $this->container->get(\App\Models\RegistryModel::class);
 

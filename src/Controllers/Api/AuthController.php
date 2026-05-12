@@ -46,7 +46,7 @@ class AuthController extends AbstractController
         }
 
         $user = new User($userData, $this->registryModel);
-        
+
         $token = $this->authService->issueToken($user);
         $res = $res->withHeader('Set-Cookie', $this->authService->getCookieHeader($token));
 

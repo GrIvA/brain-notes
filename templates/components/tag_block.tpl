@@ -13,13 +13,13 @@
             let isHome = window.BN_PAGE_ID === '1';
             
             if (isHome) {
-                // На головній — оновлюємо існуючий список
+                /* На головній — оновлюємо існуючий список */
                 let url = '/api/v1/notes/list?' + queryParams;
                 htmx.ajax('GET', url, {
                     target: '#note-list'
                 });
             } else {
-                // На інших сторінках — відкриваємо модалку
+                /* На інших сторінках — відкриваємо модалку */
                 if (this.activeTagIds.length > 0) {
                     let url = '/api/v1/notes/list?view=modal&' + queryParams;
                     htmx.ajax('GET', url, {

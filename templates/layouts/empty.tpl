@@ -13,9 +13,6 @@
         <meta name="msapplication-TileColor" content="#da532c">
         <meta name="theme-color" content="#ffffff">
 
-        <script src="/js/htmx.min.js"></script>
-        <script src="/js/alpine.min.js" defer></script>
-
         {block 'js'}{/block}
 
         <link rel="stylesheet" href="/css/fontawesome-all.min.css">

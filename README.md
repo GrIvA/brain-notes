@@ -20,7 +20,7 @@ A personal notebook with a focus on speed, privacy, and tree structure.
     - `PageAliasMiddleware`: Handles page aliases.
 - **Services**: Business logic (translations, XML processing).
 - **Models**: Data Access Layer. All Medoo queries are encapsulated in model classes in `src/Models/`.
-- **Notebooks & Sections**: Hierarchical structure of notebooks and sections with support for recursive nesting (Recursive Adjacency List). Management of notebooks (create, edit, delete) and adding sections/notes are available directly in the sidebar.
+- **Notebooks & Sections**: Hierarchical structure of notebooks and sections with support for recursive nesting (Recursive Adjacency List). Management of notebooks (create, edit, delete) and adding sections/notes are available in the sidebar (creation actions are restricted to the Homepage for consistency).
 - **Registry**: Flexible system for metadata and hierarchical structures (tags, settings, sections), implemented via `TagRegistry` and `RegistryModel` (EAV pattern).
 - **Authentication**: JWT-based authentication for API with support for Role-Based Access Control (RBAC) via bitmask.
 - **Access Control**: Strict ownership verification at the controller level. Users can only see their own data.
@@ -43,7 +43,7 @@ We use a structured template system in `templates/`:
 
 ## Features
 - **Hierarchy:** Tree-like structure of notebooks and sections.
-- **Management:** Convenient notebook management interface via the "⚙️" button, contextual addition of sections/notes via icons in the tree, as well as **inline editing of note content** directly on the view page.
+- **Management:** Convenient notebook management interface via the "⚙️" button, contextual addition of sections/notes via icons in the tree (on Homepage), as well as **inline editing of note content** directly on the view page.
 - **Tag Management:** Dynamic note filtering by tags and a built-in autocomplete for fast tagging.
 - **Interactivity:** Note control panel with HTMX support for instant updates.
 
@@ -235,7 +235,7 @@ curl -X PATCH http://blog.test:88/api/v1/security/ips/1.2.3.4 \
     - `PageAliasMiddleware`: Робота з аліасами сторінок.
 - **Services**: Бізнес-логіка (переклади, робота з XML).
 - **Models**: Шар доступу до даних (Data Access Layer). Усі запити до Medoo інкапсульовані в класах моделей у `src/Models/`.
-- **Notebooks & Sections**: Ієрархічна структура зошитів та розділів з підтримкою деревовидної вкладеності (Recursive Adjacency List). Керування зошитами (створення, редагування, видалення) та додавання розділів/нотаток доступні безпосередньо у сайдбарі.
+- **Notebooks & Sections**: Ієрархічна структура зошитів та розділів з підтримкою деревовидної вкладеності (Recursive Adjacency List). Керування зошитами (створення, редагування, видалення) та додавання розділів/нотаток доступні у сайдбарі (дії створення обмежені Головною сторінкою для забезпечення цілісності інтерфейсу).
 - **Registry**: Гнучка система метаданих та ієрархічних структур (теги, налаштування, розділи), реалізована через `TagRegistry` та `RegistryModel` (патерн EAV).
 - **Authentication**: JWT-базована аутентифікація для API з підтримкою контролю доступу на основі ролей (RBAC) через бітову маску.
 - **Access Control**: Сувора перевірка прав власності на рівні контролерів. Користувачі можуть бачити лише власні дані.
@@ -258,7 +258,7 @@ curl -X PATCH http://blog.test:88/api/v1/security/ips/1.2.3.4 \
 
 ## Особливості
 - **Ієрархія:** Деревоподібна структура зошитів та розділів.
-- **Керування:** Зручний інтерфейс для створення та редагування зошитів через кнопку «⚙️», контекстне додавання розділів/нотаток через іконки у дереві, а також **inline-редагування вмісту нотаток** прямо на сторінці перегляду.
+- **Керування:** Зручний інтерфейс для створення та редагування зошитів через кнопку «⚙️», контекстне додавання розділів/нотаток через іконки у дереві (на Головній сторінці), а також **inline-редагування вмісту нотаток** прямо на сторінці перегляду.
 - **Керування тегами:** Динамічна фільтрація нотаток за тегами та вбудований автокомпліт для швидкого тегування.
 - **Інтерактивність:** Панель керування нотатками з підтримкою HTMX для миттєвого оновлення.
 
