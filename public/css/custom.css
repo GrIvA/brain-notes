@@ -96,11 +96,14 @@ ul li .lang-switcher summary { padding: 0 7px; }
     border-radius: var(--pico-border-radius); 
     padding: 0.2rem 0.4rem;
 }
-.tags-cloud button {
+.tags-cloud button,
+.tag-badge-view {
     margin-right: 0.1rem; 
     margin-bottom: 0.1rem; 
     padding: 0.1rem 0.4rem; 
     font-size: 0.7rem;
+    width: auto;
+    display: inline-block;
 }
 
 .tags-cloud span:hover,

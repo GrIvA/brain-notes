@@ -39,6 +39,33 @@
             setTimeout(() => {
                 this.toasts = this.toasts.filter(t => t.id !== id);
             }, 3000);
+        },
+        activeTagIds: [],
+        toggleTag(id) {
+            if (this.activeTagIds.includes(id)) {
+                this.activeTagIds = this.activeTagIds.filter(i => i !== id);
+            } else {
+                this.activeTagIds.push(id);
+            }
+            
+            let queryParams = this.activeTagIds.map(id => 'tag_ids[]=' + id).join('&');
+            let isHome = window.BN_PAGE_ID === '1';
+            
+            if (isHome) {
+                /* На головній — оновлюємо існуючий список */
+                let url = '/api/v1/notes/list?' + queryParams;
+                htmx.ajax('GET', url, {
+                    target: '#note-list'
+                });
+            } else {
+                /* На інших сторінках — відкриваємо модалку */
+                if (this.activeTagIds.length > 0) {
+                    let url = '/api/v1/notes/list?view=modal&' + queryParams;
+                    htmx.ajax('GET', url, {
+                        target: '#modal-container'
+                    });
+                }
+            }
         }
     }" @toast.window="addToast($event.detail.message, $event.detail.type)">
         <!-- Toasts Container -->

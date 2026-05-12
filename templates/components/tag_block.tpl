@@ -1,35 +1,4 @@
-{ignore}
-<div class="tag-block-container" 
-     x-data="{ 
-        activeTagIds: [], 
-        toggleTag(id) {
-            if (this.activeTagIds.includes(id)) {
-                this.activeTagIds = this.activeTagIds.filter(i => i !== id);
-            } else {
-                this.activeTagIds.push(id);
-            }
-            
-            let queryParams = this.activeTagIds.map(id => 'tag_ids[]=' + id).join('&');
-            let isHome = window.BN_PAGE_ID === '1';
-            
-            if (isHome) {
-                /* На головній — оновлюємо існуючий список */
-                let url = '/api/v1/notes/list?' + queryParams;
-                htmx.ajax('GET', url, {
-                    target: '#note-list'
-                });
-            } else {
-                /* На інших сторінках — відкриваємо модалку */
-                if (this.activeTagIds.length > 0) {
-                    let url = '/api/v1/notes/list?view=modal&' + queryParams;
-                    htmx.ajax('GET', url, {
-                        target: '#modal-container'
-                    });
-                }
-            }
-        }
-     }">
-{/ignore}
+<div class="tag-block-container">
     <div class="tags-cloud">
         {if $mode == 'filter'}
             <h5><i class="fas fa-tags"></i> Фільтр</h5>
@@ -58,9 +27,13 @@
             {/foreach}
         {elseif $mode == 'view'}
             {foreach $tags as $tag}
-                <span class="tag-badge-view">
+                <button 
+                    class="tag-badge-view" 
+                    :class="activeTagIds.includes({$tag.id}) ? 'contrast' : 'outline'"
+                    @click="toggleTag({$tag.id})"
+                >
                     <small>{$tag.name}</small>
-                </span>
+                </button>
             {/foreach}
         {/if}
     </div>
