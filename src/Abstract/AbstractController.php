@@ -78,7 +78,7 @@ abstract class AbstractController
     {
         $body_params = $req->getParsedBody();
         $query_params = $req->getQueryParams() + (is_null($body_params) ? [] : $body_params);
-        if (is_array($query_params) && count($query_params) > 1) {
+        if (is_array($query_params) && count($query_params)) {
             unset($query_params['url']);
             $args = $args + $query_params;
         }

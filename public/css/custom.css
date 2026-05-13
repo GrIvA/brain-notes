@@ -81,6 +81,13 @@ ul li .lang-switcher {
 }
 ul li .lang-switcher summary { padding: 0 7px; }
 
+/********************/
+/*  Control Panel   */
+/********************/
+.control-panel button,
+.control-panel [role="button"]
+{ padding: .3rem; }
+
 /***********/
 /*  TAGs   */
 /***********/

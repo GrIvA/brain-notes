@@ -35,7 +35,7 @@ class Homepage extends SiteController
         $sectionId = isset($this->params['section_id']) ? (int)$this->params['section_id'] : null;
 
         $userId = $this->user ? (int)$this->user->getId() : null;
-        
+
         $criteria = ['user_id' => $userId];
         if ($sectionId) {
             $criteria['section_id'] = $sectionModel->getAllChildIds($sectionId);
@@ -47,8 +47,8 @@ class Homepage extends SiteController
         $registryModel = $this->container->get(\App\Models\RegistryModel::class);
 
         // Use consistent tag loading logic
-        $this->params['tags'] = $userId 
-            ? $tagModel->getCombinedTags($userId) 
+        $this->params['tags'] = $userId
+            ? $tagModel->getCombinedTags($userId)
             : $tagModel->getPublicTags();
 
         // Attach tags to each note and hide encrypted content via Entity logic

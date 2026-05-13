@@ -21,11 +21,13 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Exception\HttpForbiddenException;
 use Slim\Exception\HttpUnauthorizedException;
+use Psr\Log\LoggerInterface;
 
 class AuthMiddleware implements MiddlewareInterface
 {
     private UserModel $userModel;
     private RegistryModel $registryModel;
+    private LoggerInterface $logger;
     private string $secret;
     private array $allowedRoles;
     private ?AuthService $authService;
@@ -33,6 +35,7 @@ class AuthMiddleware implements MiddlewareInterface
     /**
      * @param UserModel $userModel
      * @param RegistryModel $registryModel
+     * @param LoggerInterface $logger
      * @param string $secret
      * @param UserRole[] $allowedRoles empty means any authenticated user
      * @param AuthService|null $authService required for sliding session
@@ -40,12 +43,14 @@ class AuthMiddleware implements MiddlewareInterface
     public function __construct(
         UserModel $userModel,
         RegistryModel $registryModel,
+        LoggerInterface $logger,
         string $secret,
         array $allowedRoles = [],
         ?AuthService $authService = null
     ) {
         $this->userModel = $userModel;
         $this->registryModel = $registryModel;
+        $this->logger = $logger;
         $this->secret = $secret;
         $this->allowedRoles = $allowedRoles;
         $this->authService = $authService;
@@ -87,6 +92,14 @@ class AuthMiddleware implements MiddlewareInterface
             // Manual expiration check
             $now = new \DateTimeImmutable();
             if ($token->isExpired($now)) {
+                $userId = $token->claims()->get('uid');
+                $jti = $token->claims()->get('jti');
+                $this->logger->warning(sprintf(
+                    "JWT Expired: user_id=%s, jti=%s, exp=%s",
+                    $userId,
+                    $jti,
+                    $token->claims()->get('exp')->format('Y-m-d H:i:s')
+                ));
                 throw new HttpUnauthorizedException($request, "Token expired");
             }
 

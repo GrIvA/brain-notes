@@ -96,6 +96,7 @@ return [
         return new AuthMiddleware(
             $container->get(UserModel::class),
             $container->get(RegistryModel::class),
+            $container->get(LoggerInterface::class),
             $settings['secret'],
             [],
             $container->get(AuthService::class)

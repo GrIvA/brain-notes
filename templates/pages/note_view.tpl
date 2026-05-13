@@ -12,46 +12,38 @@
     </nav>
 
     <header>
-        <h1 class="note-title">{$note.title}</h1>
-        
         {if $canEdit}
+            <h2 class="note-title">
+                {$note.title}
+                <button class="outline" 
+                        style="text-wrap:nowrap"
+                        hx-get="/api/v1/notes/{$note.id}/edit-ui" 
+                        hx-target="#note-content-area"
+                        hx-swap="innerHTML" title="редагувати">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </h2>
+        
             <details class="control-panel">
                 <summary class="outline contrast">
                     <span class="panel-label">Панель керування</span>
                 </summary>
                 
                 <div class="panel-content">
-                    <h5>Основні параметри</h5>
-                    <div class="grid">
-                        <div>
-                            <label for="edit-title">Заголовок</label>
                             <div role="group">
-                                <input type="text" id="edit-title" name="title" value="{$note.title}"
+                            <input type="text" id="edit-title" name="title" value="{$note.title}"
                                        hx-put="/api/v1/notes/{$note.id}"
                                        hx-trigger="change"
                                        hx-target=".note-title"
                                        hx-swap="innerHTML"
                                        hx-vals='js:{ title: document.getElementById("edit-title").value }'>
 
-                             <button class="secondary outline sm" hx-get="/api/v1/notes/move-ui/{$note.id}" hx-target="#modal-container">Перенести</button>
-                             <button class="outline sm" style="color: var(--pico-form-element-invalid-border-color); border-color: var(--pico-form-element-invalid-border-color);"
-                                     hx-delete="/api/v1/notes/{$note.id}"
-                                     hx-confirm="Ви впевнені, що хочете видалити цю нотатку?">
-                                 Видалити
-                             </button>
+                                <button class="secondary outline" hx-get="/api/v1/notes/move-ui/{$note.id}" hx-target="#modal-container" title="Перенести"><i class="fa-solid fa-route"></i></button>
+                                <button class="outline" style="color: var(--pico-form-element-invalid-border-color); border-color: var(--pico-form-element-invalid-border-color);"
+                                        hx-delete="/api/v1/notes/{$note.id}"
+                                        hx-confirm="Ви впевнені, що хочете видалити цю нотатку?" title="Видалити"><i class="fa-solid fa-rectangle-xmark"></i></button>
                             </div>
-                        </div>
-                    </div>
-                    <div class="grid">
-                        <div>
-                            <button class="contrast" 
-                                    hx-get="/api/v1/notes/{$note.id}/edit-ui" 
-                                    hx-target="#note-content-area"
-                                    hx-swap="innerHTML">
-                                <i class="fas fa-edit"></i> Редагувати вміст
-                            </button>
-                        </div>
-                    </div>
+
                     <hr>
                     <div class="grid">
                         <div>
@@ -66,7 +58,6 @@
                 </div>
 
                 <div class="panel-content">
-                    <h5>Шифрування</h5>
                     <form hx-put="/api/v1/notes/{$note.id}" hx-swap="none" hx-on::after-request="if(event.detail.successful) { alert('Дані шифрування оновлено'); location.reload(); }">
                         <div class="grid">
                             {if $isEncrypted}
@@ -84,6 +75,8 @@
                     </form>
                 </div>
             </details>
+        {else}
+            <h2 class="note-title">{$note.title}</h2>
         {/if}
     </header>
 

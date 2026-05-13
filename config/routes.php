@@ -41,11 +41,11 @@ return function (App $app) {
     $app->get('/login',    LoginPage::class . ':handle')->setName('login');
     $app->get('/register', RegisterPage::class . ':handle')->setName('register');
 
-    $app->get('/note/{id}', NotePage::class . ':handle')->setName('note_view')->add(AuthMiddleware::class);
+    $app->get('/note/{id}', NotePage::class . ':handle')->setName('note_view');
 
     $app->post('/login', AuthController::class . ':login');
     $app->post('/register', AuthController::class . ':register');
-    $app->post('/logout', AuthController::class . ':logout')->add(AuthMiddleware::class);
+    $app->post('/logout', AuthController::class . ':logout');
 
     // API Routes
     $app->group('/api/v1', function ($group) {
