@@ -1,5 +1,26 @@
 # Changelog
 
+## beta_v4
+Release beta_v4: Drag-and-Drop Reorganization & Auth Monitoring
+
+Key Changes:
+1. Drag-and-Drop System:
+   - Implemented branch-to-branch reorganization for the section tree in the sidebar.
+   - Implemented note movement by dragging the edit button onto any section in the sidebar.
+   - Enhanced Aimara.js to support persistent DOM structures for collapsed nodes during DnD.
+   - Added visual feedback for drag operations (ghost elements, drop-zone highlighting).
+2. UI & UX Refinements:
+   - Sections in the sidebar are now collapsed by default upon page load for better focus.
+   - Removed the legacy "Move" button and modal UI in favor of the new DnD workflow.
+   - Added automatic page refresh for note views after successful movement to update breadcrumbs.
+3. Security & Monitoring:
+   - Added logging for expired JWT tokens to diagnose premature session terminations.
+   - Fixed TypeErrors in AuthMiddleware by aligning constructor arguments with the container.
+   - Defined proper PAGE_NOTE (4) constant for accurate page state handling.
+4. Infrastructure:
+   - Locally hosted Sortable.js (v1.15.2) for privacy and offline support.
+   - Improved API communication using native fetch to avoid HTMX conflicts during complex async operations.
+
 ## beta_v3
 Release beta_v3: Documentation & UI Refinements
 
@@ -38,6 +59,27 @@ Key Changes:
 
 # Історія змін
 
+## beta_v4
+Реліз beta_v4: Реорганізація Drag-and-Drop та моніторинг авторизації
+
+Ключові зміни:
+1. Система Drag-and-Drop:
+   - Впроваджено можливість реорганізації гілок дерева розділів у сайдбарі.
+   - Впроваджено переміщення нотатки шляхом перетягування кнопки редагування на будь-який розділ у сайдбарі.
+   - Модернізовано Aimara.js для підтримки стабільної структури DOM згорнутих вузлів під час DnD.
+   - Додано візуальний відгук (ghost-елементи, підсвічування зон скидання).
+2. Вдосконалення UI та UX:
+   - Розділи в сайдбарі тепер згорнуті за замовчуванням при завантаженні для кращого фокусування.
+   - Видалено застарілу кнопку «Перенести» та старе модальне вікно на користь нового DnD процесу.
+   - Додано автоматичне оновлення сторінки перегляду нотатки після переміщення для актуалізації «хлібних крихт».
+3. Безпека та моніторинг:
+   - Додано логування прострочених JWT токенів для діагностики передчасного завершення сесій.
+   - Виправлено TypeError в AuthMiddleware (синхронізація аргументів конструктора з контейнером).
+   - Впроваджено константу PAGE_NOTE (4) для чіткої ідентифікації типу сторінки.
+4. Інфраструктура:
+   - Локальне підключення бібліотеки Sortable.js (v1.15.2) для швидкості та приватності.
+   - Покращено взаємодію з API через нативний fetch для уникнення конфліктів HTMX при складних асинхронних діях.
+
 ## beta_v3
 Реліз beta_v3: Документація та вдосконалення UI
 
@@ -71,4 +113,3 @@ Key Changes:
    - Повна відмова від jQuery на користь HTMX та Alpine.js.
    - Заміна важкого jsTree на легкий Aimara.js з кастомними розширеннями.
    - Оновлення документації (двомовний README) та підготовка шаблону чистої бази даних (database_example.db).
-
