@@ -1,4 +1,44 @@
-/* Custom styles for Brain Notes */
+
+/* Sortable.js Styles */
+.sortable-ghost {
+    opacity: 0.4;
+    background-color: var(--pico-primary-background) !important;
+}
+
+.sortable-chosen {
+    background-color: var(--pico-secondary-focus) !important;
+}
+
+.sortable-drag {
+    background-color: var(--pico-card-background-color) !important;
+    box-shadow: var(--pico-card-box-shadow);
+    cursor: grabbing;
+}
+
+.aimara-tree ul {
+    min-height: 5px; /* Base height for lists */
+    list-style: none;
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+/* Ensure hidden ULs are still detectable for DnD but not visible */
+.aimara-node > ul[style*="display: none"] {
+    display: block !important;
+    height: 5px;
+    overflow: hidden;
+    opacity: 0;
+}
+
+.node-wrapper {
+    transition: background-color 0.2s ease;
+}
+
+.node-wrapper.drag-over {
+    background-color: var(--pico-primary-focus) !important;
+    border-radius: var(--pico-border-radius);
+}
+
 
 .toast-container {
     position: fixed;
@@ -80,13 +120,6 @@ ul li .lang-switcher {
     vertical-align: middle;
 }
 ul li .lang-switcher summary { padding: 0 7px; }
-
-/********************/
-/*  Control Panel   */
-/********************/
-.control-panel button,
-.control-panel [role="button"]
-{ padding: .3rem; }
 
 /***********/
 /*  TAGs   */

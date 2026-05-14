@@ -8,6 +8,7 @@ function Tree(containerId) {
     this.selectedNode = null;
     this.onNodeSelected = null;
     this.onRenderActions = null;
+    this.afterDraw = null;
 
     this.createNode = function(text, id, icon, parent, expanded) {
         var node = {
@@ -34,10 +35,15 @@ function Tree(containerId) {
         this.container.innerHTML = '';
         var ul = document.createElement('ul');
         ul.className = 'aimara-tree';
+        ul.setAttribute('data-id', '0');
         for (var i = 0; i < this.nodes.length; i++) {
             this.renderNode(this.nodes[i], ul);
         }
         this.container.appendChild(ul);
+        
+        if (this.afterDraw) {
+            this.afterDraw();
+        }
     };
 
     this.renderNode = function(node, parentElement) {
@@ -49,6 +55,8 @@ function Tree(containerId) {
 
         var wrapper = document.createElement('div');
         wrapper.className = 'node-wrapper';
+        wrapper.setAttribute('data-id', node.id);
+        wrapper.setAttribute('data-type', 'section');
         if (this.selectedNode === node) wrapper.classList.add('selected');
 
         // Toggle button
@@ -98,13 +106,24 @@ function Tree(containerId) {
         node.element = wrapper;
         node.li = li;
 
-        if (node.children.length > 0 && node.expanded) {
-            var childUl = document.createElement('ul');
-            for (var i = 0; i < node.children.length; i++) {
-                this.renderNode(node.children[i], childUl);
+        // Always render the child UL to allow dropping into it, but hide if not expanded
+        var childUl = document.createElement('ul');
+        childUl.className = 'aimara-tree-sub'; // Distinct class for nested lists
+        childUl.setAttribute('data-id', node.id);
+        if (node.children.length > 0) {
+            if (node.expanded) {
+                for (var i = 0; i < node.children.length; i++) {
+                    this.renderNode(node.children[i], childUl);
+                }
+            } else {
+                childUl.style.display = 'none';
             }
-            li.appendChild(childUl);
+        } else {
+            // Even if no children, keep the UL as a potential drop target
+            childUl.style.display = node.expanded ? 'block' : 'none';
+            childUl.classList.add('empty-dropzone');
         }
+        li.appendChild(childUl);
 
         parentElement.appendChild(li);
     };

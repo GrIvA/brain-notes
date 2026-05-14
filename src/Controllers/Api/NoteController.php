@@ -160,26 +160,8 @@ class NoteController extends AbstractController
         return $res;
     }
 
-    public function moveUI(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
-    {
-        /** @var User $user */
-        $user = $req->getAttribute('user');
-        if (!$user) {
-            return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);
-        }
-        $id = (int)($args['id'] ?? 0);
-        $tmpl = $this->container->get('tmpl');
-        
-        // For now, return a simple modal or placeholder
-        $html = '<dialog open id="move-note-modal"><article><header><a href="#close" class="close" hx-on:click="document.getElementById(\'move-note-modal\').remove()"></a>Перенесення нотатки</header><p>Тут буде дерево розділів для вибору (TBD).</p><footer><button class="secondary outline" hx-on:click="document.getElementById(\'move-note-modal\').remove()">Закрити</button></footer></article></dialog>';
-
-        $res->getBody()->write($html);
-        return $res;
-    }
-
     public function store(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
-    {
-        /** @var User $user */
+    {        /** @var User $user */
         $user = $req->getAttribute('user');
         if (!$user) {
             return \App\Responder\JsonHandler::response($res, ['error' => 'Unauthorized'], 401);

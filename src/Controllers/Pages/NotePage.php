@@ -106,8 +106,7 @@ class NotePage extends SiteController
 
     protected function getPageID(): int
     {
-        // For breadcrumbs to work, we might need a unique ID or use existing one
-        return 0; 
+        return self::PAGE_NOTE; 
     }
 
     protected function getTemplateName(): string

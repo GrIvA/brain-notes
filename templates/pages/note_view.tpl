@@ -15,11 +15,14 @@
         {if $canEdit}
             <h2 class="note-title">
                 {$note.title}
-                <button class="outline" 
-                        style="text-wrap:nowrap"
+                <button class="outline note-drag-handle" 
+                        style="text-wrap:nowrap; cursor: grab; padding:.3rem;"
                         hx-get="/api/v1/notes/{$note.id}/edit-ui" 
                         hx-target="#note-content-area"
-                        hx-swap="innerHTML" title="редагувати">
+                        hx-swap="innerHTML" 
+                        title="редагувати (перетягніть на розділ для перенесення)"
+                        data-id="{$note.id}"
+                        data-type="note">
                     <i class="fas fa-edit"></i>
                 </button>
             </h2>
@@ -38,7 +41,6 @@
                                        hx-swap="innerHTML"
                                        hx-vals='js:{ title: document.getElementById("edit-title").value }'>
 
-                                <button class="secondary outline" hx-get="/api/v1/notes/move-ui/{$note.id}" hx-target="#modal-container" title="Перенести"><i class="fa-solid fa-route"></i></button>
                                 <button class="outline" style="color: var(--pico-form-element-invalid-border-color); border-color: var(--pico-form-element-invalid-border-color);"
                                         hx-delete="/api/v1/notes/{$note.id}"
                                         hx-confirm="Ви впевнені, що хочете видалити цю нотатку?" title="Видалити"><i class="fa-solid fa-rectangle-xmark"></i></button>
@@ -130,6 +132,10 @@
 
 {block 'css'}
 <style>
+    .control-panel button,
+    .control-panel [role="button"]
+    { padding: .3rem; }
+
     .note-content {
         border: 1px solid var(--pico-muted-border-color);
         border-radius: var(--pico-border-radius);

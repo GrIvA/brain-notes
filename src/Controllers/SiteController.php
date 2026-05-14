@@ -13,6 +13,7 @@ abstract class SiteController extends AbstractController
     const PAGE_HOME = 1;
     const PAGE_ERROR = 2;
     const PAGE_SIGN_IN = 3;
+    const PAGE_NOTE = 4;
 
     const HANDLING_STATUS_OK = 1;
     const HANDLING_STATUS_ERROR = 2;

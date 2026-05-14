@@ -1,3 +1,6 @@
+<!-- Sortable.js -->
+<script src="/js/sortable.min.js"></script>
+
 <!-- AimaraJS -->
 <link rel="stylesheet" href="/css/Aimara.css">
 <script src="/js/Aimara.js"></script>
@@ -114,9 +117,6 @@
                     if (response.ok) {
                         const treeData = await response.json();
                         this.renderAimaraTree(treeData);
-
-                        /* Повідомляємо HTMX про нові елементи в дереві */
-                        setTimeout(() => htmx.process(document.getElementById('section-tree')), 50);
                     }
                 } catch (e) {
                     console.error('Failed to load tree', e);
@@ -126,6 +126,13 @@
             renderAimaraTree(data) {
                 this.treeInstance = new Tree('section-tree');
                 
+                /* Реєструємо колбек для переініціалізації Sortable після кожного перемальовування дерева */
+                this.treeInstance.afterDraw = () => {
+                    this.initSortable();
+                    /* Повідомляємо HTMX про нові елементи (наприклад, кнопки дій) */
+                    htmx.process(document.getElementById('section-tree'));
+                };
+
                 /* Define actions callback */
                 this.treeInstance.onRenderActions = (node) => {
                     if (window.BN_PAGE_ID !== '1') return null;
@@ -161,7 +168,7 @@
                             dataNode.id, 
                             'fa-solid fa-folder', 
                             parentNode, 
-                            true
+                            false
                         );
                         
                         if (node.id == this.selectedSectionId) {
@@ -210,6 +217,100 @@
                 }
 
                 this.treeInstance.drawTree();
+            },
+
+            initSortable() {
+                const treeContainer = document.getElementById('section-tree');
+                const uls = treeContainer.querySelectorAll('ul');
+                
+                uls.forEach(el => {
+                    /* Запобігаємо подвійній ініціалізації */
+                    if (el.sortable) {
+                        el.sortable.destroy();
+                    }
+
+                    el.sortable = new Sortable(el, {
+                        group: {
+                            name: 'nested',
+                            put: ['nested', 'notes']
+                        },
+                        animation: 150,
+                        fallbackOnBody: true,
+                        swapThreshold: 0.65,
+                        ghostClass: 'sortable-ghost',
+                        chosenClass: 'sortable-chosen',
+                        dragClass: 'sortable-drag',
+                        onEnd: (evt) => {
+                            if (evt.item.getAttribute('data-type') === 'note') return;
+
+                            const itemEl = evt.item;
+                            const sectionId = itemEl.getAttribute('data-id');
+                            const newParentId = evt.to.getAttribute('data-id');
+                            
+                            if (evt.from === evt.to && evt.oldIndex === evt.newIndex) return;
+
+                            /* Використовуємо нативний fetch для уникнення конфліктів HTMX при асинхронних операціях */
+                            fetch(`/api/v1/sections/${sectionId}/move`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ parent_id: newParentId === '0' ? null : newParentId })
+                            }).then(res => {
+                                if (res.ok) this.loadTree();
+                            });
+                        },
+                        onAdd: (evt) => {
+                            if (evt.item.getAttribute('data-type') === 'note') {
+                                const noteId = evt.item.getAttribute('data-id');
+                                const targetSectionId = evt.to.getAttribute('data-id');
+                                
+                                if (!targetSectionId || targetSectionId === '0') {
+                                    alert('Нотатки не можна переміщувати в корінь зошита. Оберіть розділ.');
+                                    this.loadTree();
+                                    return;
+                                }
+
+                                fetch('/api/v1/notes/move', {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ 
+                                        note_ids: [parseInt(noteId)],
+                                        target_section_id: parseInt(targetSectionId) 
+                                    })
+                                }).then(res => {
+                                    if (res.ok) {
+                                        if (window.BN_PAGE_ID === '4') {
+                                            location.reload();
+                                        } else {
+                                            this.loadTree();
+                                            const noteList = document.getElementById('note-list');
+                                            if (noteList) {
+                                                htmx.trigger(noteList, 'refresh');
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+                });
+
+                this.initNoteDropZone();
+            },
+
+            initNoteDropZone() {
+                const noteHandle = document.querySelector('.note-drag-handle');
+                if (noteHandle && !noteHandle.classList.contains('sortable-initialized')) {
+                    new Sortable(noteHandle.parentElement, {
+                        group: {
+                            name: 'notes',
+                            pull: 'clone',
+                            put: false
+                        },
+                        sort: false,
+                        animation: 150
+                    });
+                    noteHandle.classList.add('sortable-initialized');
+                }
             }
         };
 

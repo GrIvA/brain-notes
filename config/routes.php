@@ -75,7 +75,6 @@ return function (App $app) {
         $group->get('/notes/search-by-tags', TagController::class . ':search');
         $group->get('/notes/list',               NoteController::class . ':listFiltered');
         $group->get('/notes/create-ui',          NoteController::class . ':createUI');
-        $group->get('/notes/move-ui/{id}',       NoteController::class . ':moveUI');
         $group->get('/notes/{id}/edit-ui',       NoteController::class . ':editUI');
         $group->get('/notes/{id}/view-fragment', NoteController::class . ':viewFragment');
         $group->patch('/notes/move',             NoteController::class . ':move');
