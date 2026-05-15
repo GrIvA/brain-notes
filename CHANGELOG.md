@@ -13,6 +13,7 @@ Key Changes:
    - Sections in the sidebar are now collapsed by default upon page load for better focus.
    - Removed the legacy "Move" button and modal UI in favor of the new DnD workflow.
    - Added automatic page refresh for note views after successful movement to update breadcrumbs.
+   - Improved breadcrumb navigation: removed redundant note title and added links to return to home with active node selection.
 3. Security & Monitoring:
    - Added logging for expired JWT tokens to diagnose premature session terminations.
    - Fixed TypeErrors in AuthMiddleware by aligning constructor arguments with the container.

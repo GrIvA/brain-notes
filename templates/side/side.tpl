@@ -14,7 +14,7 @@
             <hr>
 
             <div class="side-notebook-selector" x-data="sidebarTree({$common.active_notebook_id ?: 0}, {$common.active_section_id ?: 0})" x-init="initTree()">
-                    <div class="grid" style="margin-bottom: 0.5rem; align-items: center; grid-template-columns: 1fr auto {if $common.page_id == 1}auto{/if};">
+                    <div class="grid" style="margin-bottom: 0.5rem; align-items: center; grid-template-columns: 1fr auto auto;">
                         <select id="notebook-select" x-model="activeNotebookId" @change="loadTree()">
                             <template x-for="nb in notebooks" :key="nb.id">
                                 <option :value="nb.id" x-text="nb.title" :selected="nb.id == activeNotebookId"></option>
@@ -27,17 +27,16 @@
                                 hx-target="#modal-container">
                             <i class="fas fa-cog"></i>
                         </button>
-                        {if $common.page_id == 1}
-                            <button class="outline secondary" 
-                                    style="padding: 0.25rem 0.5rem; margin-bottom: 0;" 
-                                    :title="activeNotebookId ? 'Додати кореневий розділ' : 'Спочатку виберіть зошит'"
-                                    :disabled="!activeNotebookId"
-                                    hx-get="/api/v1/sections/create-ui"
-                                    :hx-vals="JSON.stringify({ notebook_id: activeNotebookId })"
-                                    hx-target="#modal-container">
-                                <i class="fas fa-folder-plus"></i>
-                            </button>
-                        {/if}
+                        <button class="outline secondary" 
+                                style="padding: 0.25rem 0.5rem; margin-bottom: 0;" 
+                                :title="activeNotebookId ? 'Додати кореневий розділ' : 'Спочатку виберіть зошит'"
+                                :disabled="!activeNotebookId"
+                                hx-get="/api/v1/sections/create-ui"
+                                :hx-vals="JSON.stringify({ notebook_id: activeNotebookId })"
+                                hx-target="#modal-container"
+                                @click.stop>
+                            <i class="fas fa-folder-plus"></i>
+                        </button>
                     </div>
                 <div id="section-tree"></div>
             </div>

@@ -52,7 +52,7 @@ A personal notebook with a focus on speed, privacy, and tree structure.
     - `PageAliasMiddleware`: Handles page aliases.
 - **Services**: Business logic (translations, XML processing).
 - **Models**: Data Access Layer. All Medoo queries are encapsulated in model classes in `src/Models/`.
-- **Notebooks & Sections**: Hierarchical structure of notebooks and sections with support for recursive nesting (Recursive Adjacency List). Management of notebooks (create, edit, delete) and adding sections/notes are available in the sidebar (creation actions are restricted to the Homepage for consistency).
+- **Notebooks & Sections**: Hierarchical structure of notebooks and sections with support for recursive nesting (Recursive Adjacency List). Management of notebooks (create, edit, delete) and adding sections/notes are available in the sidebar on all pages.
 - **Registry**: Flexible system for metadata and hierarchical structures (tags, settings, sections), implemented via `TagRegistry` and `RegistryModel` (EAV pattern).
 - **Authentication**: JWT-based authentication for API with support for Role-Based Access Control (RBAC) via bitmask.
 - **Access Control**: Strict ownership verification at the controller level. Users can only see their own data.
@@ -75,6 +75,7 @@ We use a structured template system in `templates/`:
 
 ## Features
 - **Hierarchy:** Tree-like structure of notebooks and sections.
+- **Navigation:** Intelligent breadcrumbs on the note view page that allow returning to the homepage with the corresponding notebook and section automatically activated in the sidebar tree.
 - **Management:** Convenient notebook management interface via the "⚙️" button, contextual addition of sections/notes via icons in the tree (on Homepage), as well as **inline editing of note content** directly on the view page.
 - **Tag Management:** Dynamic note filtering by tags using global state (synchronization between the sidebar and the note footer) and a built-in autocomplete for fast tagging.
 - **Interactivity:** Note control panel with HTMX support for instant updates.

@@ -38,6 +38,14 @@ class Homepage extends SiteController
 
         $criteria = ['user_id' => $userId];
         if ($sectionId) {
+            $section = $sectionModel->findById($sectionId);
+            if ($section) {
+                $this->params['common']['active_notebook_id'] = (int)$section['notebook_id'];
+                // Ensure cookie is in sync if it was different
+                if (!isset($this->params['active_notebook_id']) || (int)$this->params['active_notebook_id'] !== (int)$section['notebook_id']) {
+                    setcookie('active_notebook_id', (string)$section['notebook_id'], time() + 60 * 60 * 24 * 365, '/');
+                }
+            }
             $criteria['section_id'] = $sectionModel->getAllChildIds($sectionId);
             $this->params['common']['active_section_id'] = $sectionId;
         }

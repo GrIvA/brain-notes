@@ -135,8 +135,6 @@
 
                 /* Define actions callback */
                 this.treeInstance.onRenderActions = (node) => {
-                    if (window.BN_PAGE_ID !== '1') return null;
-
                     var actions = document.createElement('span');
                     actions.className = 'node-actions';
                     
@@ -146,6 +144,7 @@
                     addSec.title = 'Додати підрозділ';
                     addSec.setAttribute('hx-get', '/api/v1/sections/create-ui?notebook_id=' + this.activeNotebookId + '&parent_id=' + node.id);
                     addSec.setAttribute('hx-target', '#modal-container');
+                    addSec.onclick = (e) => e.stopPropagation();
                     actions.appendChild(addSec);
 
                     /* Add Note button */
@@ -154,6 +153,7 @@
                     addNote.title = 'Додати нотатку';
                     addNote.setAttribute('hx-get', '/api/v1/notes/create-ui?section_id=' + node.id);
                     addNote.setAttribute('hx-target', '#modal-container');
+                    addNote.onclick = (e) => e.stopPropagation();
                     actions.appendChild(addNote);
 
                     return actions;

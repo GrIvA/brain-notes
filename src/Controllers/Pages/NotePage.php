@@ -70,13 +70,18 @@ class NotePage extends SiteController
         $section = $sectionModel->findById((int)$this->noteData['section_id']);
         $notebook = $notebookModel->findById((int)$section['notebook_id']);
         
+        $homeUrl = getAliasByPageID(self::PAGE_HOME);
+
         // Breadcrumbs: Notebook -> Sections path
         $breadcrumbs = [
-            ['title' => $notebook['title'], 'url' => '#']
+            ['title' => $notebook['title'], 'url' => $homeUrl . '?active_notebook_id=' . $notebook['id']]
         ];
         $ancestors = $sectionModel->getAncestors((int)$this->noteData['section_id']);
         foreach ($ancestors as $ancestor) {
-            $breadcrumbs[] = ['title' => $ancestor['title'], 'url' => '#'];
+            $breadcrumbs[] = [
+                'title' => $ancestor['title'],
+                'url' => $homeUrl . '?section_id=' . $ancestor['id'] . '&active_notebook_id=' . $notebook['id']
+            ];
         }
 
         // Ownership & Permissions
@@ -90,6 +95,7 @@ class NotePage extends SiteController
         
         // Sync active notebook in sidebar
         $this->params['common']['active_notebook_id'] = (int)$notebook['id'];
+        $this->params['common']['active_section_id'] = (int)$this->noteData['section_id'];
         
         $isEncrypted = ((int)$this->noteData['attributes'] & NoteModel::ATTR_ENCRYPT) === NoteModel::ATTR_ENCRYPT;
 

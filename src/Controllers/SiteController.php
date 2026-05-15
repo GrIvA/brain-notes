@@ -90,6 +90,11 @@ abstract class SiteController extends AbstractController
         $lang = $this->container->get(LanguageService::class); /* @var $lang LanguageService */
         $tagModel = $this->container->get(\App\Models\TagModel::class);
 
+        $activeNotebookId = (int)($this->params['active_notebook_id'] ?? $_COOKIE['active_notebook_id'] ?? 0);
+        if (isset($this->params['active_notebook_id'])) {
+            setcookie('active_notebook_id', (string)$activeNotebookId, time() + 60 * 60 * 24 * 365, '/');
+        }
+
         $this->params['common'] = [
             'languages' => $this->getLanguageSelectorInfo(),
             'language_id' => $lang->getCurrentLanguageID(),
@@ -97,7 +102,7 @@ abstract class SiteController extends AbstractController
             'title_of_page' => '',
             'deployment' => $this->container->get('settings')['deployment'],
             'theme' => $_COOKIE['pico-theme'] ?? 'light',
-            'active_notebook_id' => (int)($_COOKIE['active_notebook_id'] ?? 0),
+            'active_notebook_id' => $activeNotebookId,
             'all_tags' => $this->user
                 ? $tagModel->getCombinedTags((int)$this->user->getId())
                 : $tagModel->getPublicTags(),

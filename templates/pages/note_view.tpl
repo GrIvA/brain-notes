@@ -7,7 +7,6 @@
             {foreach $breadcrumbs as $crumb}
                 <li><a href="{$crumb.url}">{$crumb.title}</a></li>
             {/foreach}
-            <li>{$note.title}</li>
         </ul>
     </nav>
 
